@@ -1,4 +1,4 @@
-package com.example.backendArena;
+package com.arenaHub.backendArena;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

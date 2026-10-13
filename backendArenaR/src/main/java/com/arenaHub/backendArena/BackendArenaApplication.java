@@ -1,4 +1,4 @@
-package com.example.backendArena;
+package com.arenaHub.backendArena;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
