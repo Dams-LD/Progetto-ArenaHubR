@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.arenaHub.backendArena.dto.TorneoDto;
 import com.arenaHub.backendArena.entity.Torneo;
-import com.arenaHub.backendArena.exception.RegolaViolataException;
+import com.arenaHub.backendArena.exception.RichiestaNonValidaException;
 import com.arenaHub.backendArena.exception.RisorsaNonTrovataException;
 import com.arenaHub.backendArena.repository.IscrizioneRepository;
 import com.arenaHub.backendArena.repository.TorneoRepository;
@@ -26,7 +26,6 @@ public class TorneoService {
     private final TorneoRepository torneoRepository;
     private final IscrizioneRepository iscrizioneRepository;
 
-    /** Costruttore scritto a mano: non usiamo Lombok in questo progetto. */
     public TorneoService(TorneoRepository torneoRepository,
                          IscrizioneRepository iscrizioneRepository) {
         this.torneoRepository = torneoRepository;
@@ -43,7 +42,7 @@ public class TorneoService {
     public List<TorneoDto> cerca(String stato, String categoria, String gioco, UUID utenteId) {
 
         if (stato != null && !STATI_VALIDI.contains(stato)) {
-            throw new RegolaViolataException("Stato non valido");
+            throw new RichiestaNonValidaException("Stato non valido");
         }
 
         List<Torneo> tornei = torneoRepository.cerca(stato, categoria, gioco);
