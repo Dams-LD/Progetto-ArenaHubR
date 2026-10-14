@@ -4,40 +4,32 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { IscrizioneApi, Limite, MiaIscrizioneApi, TorneoApi, UtenteAdmin, UtenteMe } from '../models/torneo.model';
 
-
-/** Tutte le chiamate HTTP verso i tornei. I componenti non usano HttpClient direttamente. */
+/** Tutte le chiamate HTTP verso il backend. */
 @Injectable({ providedIn: 'root' })
 export class TorneoApiService {
 
-
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
-
 
   lista(): Observable<TorneoApi[]> {
     return this.http.get<TorneoApi[]>(`${this.base}/tornei`);
   }
 
-
   dettaglio(id: number): Observable<TorneoApi> {
-    return this.http.get<TorneoApi>(`this.base/tornei/{id}`);
+    return this.http.get<TorneoApi>(`${this.base}/tornei/${id}`);
   }
-
 
   categorie(): Observable<string[]> {
     return this.http.get<string[]>(`${this.base}/categorie`);
   }
 
-
   iscriviti(id: number): Observable<IscrizioneApi> {
-    return this.http.post<IscrizioneApi>(`this.base/tornei/{id}/iscrizioni`, null);
+    return this.http.post<IscrizioneApi>(`${this.base}/tornei/${id}/iscrizioni`, null);
   }
-
 
   annulla(id: number): Observable<void> {
-    return this.http.delete<void>(`this.base/tornei/{id}/iscrizioni`);
+    return this.http.delete<void>(`${this.base}/tornei/${id}/iscrizioni`);
   }
-
 
   mie(): Observable<MiaIscrizioneApi[]> {
     return this.http.get<MiaIscrizioneApi[]>(`${this.base}/iscrizioni/mie`);

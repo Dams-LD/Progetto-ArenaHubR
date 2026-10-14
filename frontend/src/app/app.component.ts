@@ -1,5 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, NgZone, OnInit } from '@angular/core';import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TorneoApiService } from './services/torneo-api.service';
@@ -59,6 +58,9 @@ export interface Toast {
 export class AppComponent implements OnInit {
   private readonly api = inject(TorneoApiService);
   private readonly supabase = inject(SupabaseService);
+    /** Le risposte di Supabase arrivano fuori da Angular: zone.run forza l'aggiornamento della vista. */
+  private readonly zone = inject(NgZone);
+
 
   // --- sessione (Supabase Auth) ---
   isLoggedIn = false;
@@ -122,8 +124,10 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Ripristina la sessione salvata da Supabase (ricaricando la pagina resti loggato)
     // e ascolta login/logout/rinnovo del token.
-    this.supabase.client.auth.getSession().then(({ data }) => this.applicaSessione(data.session, false));
-    this.supabase.onCambioSessione(session => this.applicaSessione(session, true));
+      this.supabase.client.auth.getSession().then(({ data }) =>
+      this.zone.run(() => this.applicaSessione(data.session, false)));
+      this.supabase.onCambioSessione(session =>
+      this.zone.run(() => this.applicaSessione(session, true)));
 
     this.caricaTornei();
     this.api.categorie().subscribe({
@@ -351,30 +355,30 @@ export class AppComponent implements OnInit {
 
   // --- autenticazione ---
 
-  async onLoginSubmit(): Promise<void> {
+    async onLoginSubmit(): Promise<void> {
     const { email, password } = this.loginData;
     if (!email || !password) {
       this.addToast('Inserisci email e password', 'danger');
       return;
     }
-    this.loginInCorso = true;
     const { error } = await this.supabase.login(email, password);
-    this.loginInCorso = false;
-    if (error) {
-      // Supabase risponde in inglese ("Invalid login credentials"): messaggio nostro
-      this.addToast('Email o password non corretti', 'danger');
-      return;
-    }
-    // il resto (isLoggedIn, nome, ricarica tornei) lo fa applicaSessione
-    this.showLoginModal = false;
-    this.loginData = { email: '', password: '' };
+    this.zone.run(() => {
+      if (error) {
+        this.addToast('Email o password non corretti', 'danger');
+        return;
+      }
+      this.showLoginModal = false;
+      this.loginData = { email: '', password: '' };
+    });
   }
 
   async logout(): Promise<void> {
     await this.supabase.logout();
-    this.showAccountModal = false;
-    this.currentTab = 'tornei';
-    this.addToast('Disconnesso', 'info');
+    this.zone.run(() => {
+      this.showAccountModal = false;
+      this.currentTab = 'tornei';
+      this.addToast('Disconnesso', 'info');
+    });
   }
 
   /**
@@ -430,8 +434,8 @@ export class AppComponent implements OnInit {
 
   salvaLimite(): void {
     const n = Number(this.nuovoLimite);
-    if (!Number.isInteger(n) || n < 3 || n > 999) {
-      this.addToast('Il limite deve essere un numero intero fra 3 e 999', 'danger');
+      if (!Number.isInteger(n) || n < 1 || n > 999) {
+        this.addToast('Il limite deve essere un numero intero fra 1 e 999', 'danger');
       return;
     }
     this.api.aggiornaLimite(n).subscribe({
