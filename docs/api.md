@@ -432,6 +432,17 @@ Errori:
 400  {"errore": "Mese non valido"}
 ```
 
+## API AGGIUNTE VERSIONE 1.2 E CON CHANGE REQUEST
+
+# GET /api/impostazioni
+
+# PUT /api/impostazioni
+
+# GET /api/utenti
+
+
+
+
 ---
 
 ## Quale schermata chiama cosa
