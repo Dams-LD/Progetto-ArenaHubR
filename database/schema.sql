@@ -136,3 +136,122 @@ REVOKE ALL PRIVILEGES ON TABLE
 FROM anon, authenticated;
 
 COMMIT;
+
+
+BEGIN;
+ 
+ 
+-- 1. Impostazioni globali del sito (una sola riga)
+ 
+CREATE TABLE IF NOT EXISTS public.impostazioni (
+    id SMALLINT PRIMARY KEY DEFAULT 1,
+    max_tornei_attivi INTEGER NOT NULL DEFAULT 3,
+    aggiornato_il TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    aggiornato_da UUID
+        REFERENCES public.profiles(id) ON DELETE SET NULL,
+ 
+    CONSTRAINT impostazioni_riga_unica
+        CHECK (id = 1),
+ 
+    CONSTRAINT impostazioni_max_tornei_check
+        CHECK (max_tornei_attivi BETWEEN 3 AND 999)
+);
+ 
+INSERT INTO public.impostazioni (id)
+VALUES (1)
+ON CONFLICT (id) DO NOTHING;
+ 
+ALTER TABLE public.impostazioni ENABLE ROW LEVEL SECURITY;
+ 
+REVOKE ALL PRIVILEGES ON TABLE public.impostazioni FROM anon, authenticated;
+ 
+ 
+-- 2. Controllo del limite all'iscrizione
+ 
+CREATE OR REPLACE FUNCTION public.check_limite_iscrizioni()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_max INTEGER;
+    v_attive INTEGER;
+    v_stato TEXT;
+BEGIN
+    -- già iscritto a questo torneo: ci pensa il vincolo UNIQUE
+    IF EXISTS (
+        SELECT 1
+        FROM public.iscrizioni
+        WHERE utente_id = NEW.utente_id
+          AND torneo_id = NEW.torneo_id
+    ) THEN
+        RETURN NEW;
+    END IF;
+ 
+    -- un torneo concluso non occupa uno slot
+    SELECT stato INTO v_stato
+    FROM public.tornei
+    WHERE id = NEW.torneo_id;
+ 
+    IF v_stato IS NULL OR v_stato NOT IN ('aperto', 'chiuso') THEN
+        RETURN NEW;
+    END IF;
+ 
+    -- mette in fila le iscrizioni simultanee dello stesso utente,
+    -- così il conteggio qui sotto non si può aggirare con due click insieme
+    PERFORM 1
+    FROM public.profiles
+    WHERE id = NEW.utente_id
+    FOR UPDATE;
+ 
+    SELECT max_tornei_attivi INTO v_max
+    FROM public.impostazioni
+    WHERE id = 1;
+ 
+    SELECT COUNT(*) INTO v_attive
+    FROM public.iscrizioni i
+    JOIN public.tornei t ON t.id = i.torneo_id
+    WHERE i.utente_id = NEW.utente_id
+      AND t.stato IN ('aperto', 'chiuso');
+ 
+    IF v_attive >= v_max THEN
+        RAISE EXCEPTION 'Limite di % tornei attivi raggiunto', v_max
+            USING ERRCODE = 'TL001';
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$;
+ 
+DROP TRIGGER IF EXISTS trg_check_limite_iscrizioni ON public.iscrizioni;
+ 
+CREATE TRIGGER trg_check_limite_iscrizioni
+    BEFORE INSERT ON public.iscrizioni
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_limite_iscrizioni();
+ 
+REVOKE ALL ON FUNCTION public.check_limite_iscrizioni()
+    FROM PUBLIC, anon, authenticated;
+ 
+ 
+-- 3. Vista per l'admin: utenti e numero di tornei a cui sono iscritti
+--    L'email non c'è di proposito: il backend la prende da auth.users
+--    con una join, come già fa per la lista iscritti.
+ 
+CREATE OR REPLACE VIEW public.v_utenti_iscrizioni
+WITH (security_invoker = true) AS
+SELECT
+    p.id,
+    p.username,
+    COUNT(*) FILTER (WHERE t.stato IN ('aperto', 'chiuso')) AS tornei_attivi,
+    COUNT(i.id) AS tornei_totali
+FROM public.profiles p
+LEFT JOIN public.iscrizioni i ON i.utente_id = p.id
+LEFT JOIN public.tornei t ON t.id = i.torneo_id
+WHERE p.ruolo = 'UTENTE'
+GROUP BY p.id, p.username;
+ 
+REVOKE ALL PRIVILEGES ON public.v_utenti_iscrizioni FROM anon, authenticated;
+ 
+COMMIT;
