@@ -23,7 +23,9 @@ WHERE p.id = u.id;
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 BEGIN;
-
+ 
+ALTER TABLE public.iscrizioni DISABLE TRIGGER trg_check_limite_iscrizioni;
+ 
 INSERT INTO public.tornei (
     nome,
     gioco,
@@ -150,34 +152,34 @@ WHERE NOT EXISTS (
     FROM public.tornei t
     WHERE LOWER(t.nome) = LOWER(seed.nome)
 );
-
+ 
 WITH dati_iscrizioni (username, nome_torneo, data_iscrizione) AS (
     VALUES
         ('player_alpha', 'Torneo Warzone', TIMESTAMP '2026-10-12 10:00:00'),
         ('player_bravo', 'Torneo Warzone', TIMESTAMP '2026-10-12 10:10:00'),
         ('player_charlie', 'Torneo Warzone', TIMESTAMP '2026-10-12 10:20:00'),
-
+ 
         ('player_alpha', 'Torneo Valorant', TIMESTAMP '2026-10-12 11:00:00'),
         ('player_charlie', 'Torneo Valorant', TIMESTAMP '2026-10-12 11:10:00'),
-
+ 
         ('player_bravo', 'Torneo Fortnite', TIMESTAMP '2026-10-12 12:00:00'),
         ('player_charlie', 'Torneo Fortnite', TIMESTAMP '2026-10-12 12:10:00'),
-
+ 
         ('player_alpha', 'Torneo FC26', TIMESTAMP '2026-10-12 13:00:00'),
         ('player_delta', 'Torneo FC26', TIMESTAMP '2026-10-12 13:10:00'),
-
+ 
         ('player_alpha', 'Torneo F1', TIMESTAMP '2026-10-10 10:00:00'),
         ('player_charlie', 'Torneo F1', TIMESTAMP '2026-10-10 10:10:00'),
-
+ 
         ('player_alpha', 'Torneo UFC', TIMESTAMP '2026-10-01 10:00:00'),
         ('player_delta', 'Torneo UFC', TIMESTAMP '2026-10-01 10:10:00'),
-
+ 
         ('player_bravo', 'Torneo Mortal Kombat', TIMESTAMP '2026-10-02 10:00:00'),
         ('player_delta', 'Torneo Mortal Kombat', TIMESTAMP '2026-10-02 10:10:00'),
-
+ 
         ('player_bravo', 'Torneo Rocket League', TIMESTAMP '2026-10-12 14:00:00'),
         ('player_delta', 'Torneo Rocket League', TIMESTAMP '2026-10-12 14:10:00'),
-
+ 
         ('player_charlie', 'Torneo PUBG', TIMESTAMP '2026-10-10 11:00:00'),
         ('player_delta', 'Torneo PUBG', TIMESTAMP '2026-10-10 11:10:00')
 )
@@ -197,5 +199,7 @@ JOIN public.profiles p
 JOIN public.tornei t
     ON LOWER(t.nome) = LOWER(d.nome_torneo)
 ON CONFLICT (utente_id, torneo_id) DO NOTHING;
-
+ 
+ALTER TABLE public.iscrizioni ENABLE TRIGGER trg_check_limite_iscrizioni;
+ 
 COMMIT;
