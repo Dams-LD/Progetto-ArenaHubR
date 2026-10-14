@@ -1,0 +1,501 @@
+<div id="app-root">
+  <!-- NAVBAR GLASSMORPHISM -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <div class="logo" (click)="currentTab = 'tornei'">
+        <div class="logo-badge"><i class="fa-solid fa-gamepad"></i></div>
+        <div class="logo-text">
+          <span class="brand-title">ITS <span class="highlight">GAMING</span></span>
+          <span class="brand-sub">ACADEMY ARENA</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'tornei' }"
+          (click)="currentTab = 'tornei'">
+          <i class="fa-solid fa-trophy"></i> <span>Tornei</span>
+        </button>
+        <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'calendario' }"
+          (click)="currentTab = 'calendario'">
+          <i class="fa-regular fa-calendar-days"></i> <span>Calendario</span>
+        </button>
+        <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'miei-tornei' }"
+          (click)="currentTab = 'miei-tornei'">
+          <i class="fa-solid fa-fire"></i> <span>I Miei Tornei</span>
+          <span class="count-badge" *ngIf="myTournaments.length > 0">{{ myTournaments.length }}</span>
+        </button>
+
+        <div class="account-chip" (click)="showAccountModal = true" title="Gestisci Account">
+          <img [src]="user.avatar" class="avatar-img" alt="Avatar" (error)="handleImageError($event)">
+          <div class="user-info">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-role">STUDENTE ITS</span>
+          </div>
+          <i class="fa-solid fa-chevron-down nav-arrow"></i>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container main-content">
+
+    <!-- HERO BANNER -->
+    <header class="hero-banner" *ngIf="currentTab === 'tornei'">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="hero-tag"><i class="fa-solid fa-bolt"></i> ITS ACADEMY COMPETITIONS</span>
+        <h1 class="hero-title">DOMINA L'ARENA <span class="gradient-text">ESPORTS</span></h1>
+        <p class="hero-desc">Partecipa ai 9 tornei gratuiti dell'ITS, scala le classifiche ed ottieni premi e trofei
+          ufficiali.</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num">{{ tournaments.length }}</span>
+            <span class="stat-label">Tornei Totali</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">{{ activeTournamentsCount }}</span>
+            <span class="stat-label">Iscrizioni Aperte</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Gratuito per Studenti</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!--VISTA TORNEI-->
+    <section *ngIf="currentTab === 'tornei'" class="section-block">
+
+      <!-- FILTRI E RICERCA -->
+      <div class="filter-bar">
+        <div class="search-field">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Cerca un torneo, gioco o regolamento...">
+          <button type="button" *ngIf="searchQuery" class="clear-btn" (click)="searchQuery = ''"><i
+              class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="filter-controls">
+          <div class="select-wrapper">
+            <i class="fa-solid fa-layer-group select-icon"></i>
+            <select [(ngModel)]="selectedCategory">
+              <option value="ALL">Tutte le Categorie</option>
+              <option value="FPS">FPS & Battle Royale</option>
+              <option value="SPORT">Sport & Racing</option>
+              <option value="ARCADE">Arcade & Fighting</option>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <i class="fa-solid fa-sliders select-icon"></i>
+            <select [(ngModel)]="selectedStatus">
+              <option value="ALL">Tutti gli Stati</option>
+              <option value="OPEN">Iscrizioni Aperte</option>
+              <option value="FINISHED">Conclusi</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRIGLIA CARDS TORNEI -->
+      <div class="tournaments-grid" *ngIf="filteredTournaments.length > 0">
+        <div *ngFor="let t of filteredTournaments" class="card-tournament"
+          [ngClass]="{ 'card-finished': t.isFinished, 'card-enrolled': t.isEnrolled }">
+          <div class="card-badge-container">
+            <span class="category-badge" [ngClass]="t.category.toLowerCase()">{{ t.category }}</span>
+            <span *ngIf="t.isFinished" class="status-badge finished"><i class="fa-solid fa-flag-checkered"></i>
+              Concluso</span>
+            <span *ngIf="!t.isFinished" class="status-badge open"><i class="fa-solid fa-circle"></i> Aperto</span>
+          </div>
+
+          <div class="card-media">
+            <img [src]="t.image" [alt]="t.title" class="media-img" (error)="handleImageError($event)">
+            <div class="media-gradient"></div>
+            <h3 class="tournament-name">{{ t.title }}</h3>
+          </div>
+
+          <div class="card-body">
+            <p class="tournament-desc">{{ t.description }}</p>
+
+            <div class="meta-list">
+              <div class="meta-item">
+                <i class="fa-regular fa-clock"></i>
+                <span>{{ t.dateTime }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-ticket"></i>
+                <span>Iscrizione: <strong class="text-neon">GRATUITA</strong></span>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-award"></i>
+                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Iscritti: <strong>{{ t.maxSpots - t.availableSpots }} / {{ t.maxSpots }}</strong></span>
+              </div>
+            </div>
+
+            <div class="capacity-bar-wrapper">
+              <div class="capacity-bar-fill" [style.width.%]="getCapacityPercent(t)"
+                [ngClass]="{ 'danger': t.availableSpots <= 2 }"></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <ng-container *ngIf="!t.isFinished">
+              <button type="button" *ngIf="!t.isEnrolled" class="btn btn-action primary"
+                [disabled]="t.availableSpots === 0" (click)="enrollUser(t)">
+                <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI GRATIS'
+                }}
+              </button>
+              <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" (click)="unenrollUser(t)">
+                <i class="fa-solid fa-circle-check"></i> SEI ISCRITTO
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="t.isFinished">
+              <button type="button" class="btn btn-action disabled" disabled>
+                <i class="fa-solid fa-lock"></i> TORNEO CHIUSO
+              </button>
+            </ng-container>
+
+            <button type="button" class="btn btn-action secondary" (click)="openDetailsModal(t)">
+              <i class="fa-solid fa-eye"></i> VEDI
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredTournaments.length === 0" class="empty-card">
+        <i class="fa-solid fa-ghost empty-icon"></i>
+        <h3>Nessun Torneo Trovato</h3>
+        <p>Nessun risultato corrisponde ai filtri selezionati.</p>
+        <button type="button" class="btn btn-action primary" (click)="resetFilters()">Resetta Filtri</button>
+      </div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section *ngIf="currentTab === 'calendario'" class="section-block">
+      <div class="calendar-wrapper">
+        <div class="weekdays-grid">
+          <!-- giorni della settimana -->
+        </div>
+        <div class="calendar-month-grid">
+          <!-- celle del mese -->
+        </div>
+      </div>
+      <div class="calendar-header-block">
+        <div class="section-header">
+          <h2><i class="fa-regular fa-calendar-days text-neon"></i> CALENDARIO COMPETIZIONI</h2>
+          <p>Pianifica la tua stagione eSport: consulta le date, filtra per interesse e accedi ai tornei.</p>
+        </div>
+
+        <div class="cal-stats-strip">
+          <div class="cal-stat-card">
+            <i class="fa-solid fa-trophy icon-purple"></i>
+            <div>
+              <span class="stat-value">{{ monthEventsCount }}</span>
+              <span class="stat-name">Tornei nel Mese</span>
+            </div>
+          </div>
+          <div class="cal-stat-card">
+            <i class="fa-solid fa-user-check icon-green"></i>
+            <div>
+              <span class="stat-value">{{ monthEnrolledCount }}</span>
+              <span class="stat-name">Iscrizioni Attive</span>
+            </div>
+          </div>
+          <div class="cal-stat-card">
+            <i class="fa-solid fa-fire icon-orange"></i>
+            <div>
+              <span class="stat-value">{{ monthOpenSpotsCount }}</span>
+              <span class="stat-name">Posti Liberi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-toolbar">
+        <div class="month-navigator">
+          <button type="button" class="nav-month-btn" (click)="changeMonth(-1)"><i
+              class="fa-solid fa-chevron-left"></i></button>
+          <div class="current-month-display">
+            <i class="fa-regular fa-calendar text-neon"></i>
+            <span>{{ currentMonthLabel }}</span>
+          </div>
+          <button type="button" class="nav-month-btn" (click)="changeMonth(1)"><i
+              class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" class="btn-today" (click)="goToToday()" *ngIf="!isCurrentMonthToday">Oggi</button>
+        </div>
+
+        <div class="cal-filters">
+          <button type="button" class="filter-chip" [ngClass]="{ active: calFilter === 'ALL' }"
+            (click)="calFilter = 'ALL'">Tutti ({{ monthEventsCount }})</button>
+          <button type="button" class="filter-chip" [ngClass]="{ active: calFilter === 'MINE' }"
+            (click)="calFilter = 'MINE'"><i class="fa-solid fa-star text-gold"></i> I Miei ({{ monthEnrolledCount
+            }})</button>
+          <button type="button" class="filter-chip" [ngClass]="{ active: calFilter === 'OPEN' }"
+            (click)="calFilter = 'OPEN'">Aperti</button>
+        </div>
+      </div>
+
+      <div class="weekdays-grid">
+        <div>Lun</div>
+        <div>Mar</div>
+        <div>Mer</div>
+        <div>Gio</div>
+        <div>Ven</div>
+        <div>Sab</div>
+        <div>Dom</div>
+      </div>
+
+      <div class="calendar-month-grid">
+        <div *ngFor="let day of calendarGridDays" class="cal-day-cell"
+          [ngClass]="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'has-events': day.events.length > 0 }">
+          <div class="day-cell-header">
+            <span class="day-num">{{ day.dayNumber }}</span>
+            <span class="day-badge" *ngIf="day.events.length > 0">{{ day.events.length }} {{ day.events.length === 1 ?
+              'gara' : 'gare' }}</span>
+          </div>
+
+          <div class="day-events-container">
+            <div *ngFor="let evt of day.events" class="cal-event-card"
+              [ngClass]="{ 'is-enrolled': evt.isEnrolled, 'is-finished': evt.isFinished }"
+              (click)="openDetailsModal(evt)">
+              <div class="event-top">
+                <span class="cat-tag" [ngClass]="evt.category.toLowerCase()">
+                  <i [class]="getCategoryIcon(evt.category)"></i> {{ evt.category }}
+                </span>
+                <span *ngIf="evt.isEnrolled" class="status-pill enrolled"><i class="fa-solid fa-check"></i>
+                  Iscritto</span>
+                <span *ngIf="!evt.isEnrolled && evt.isFinished" class="status-pill finished">Concluso</span>
+                <span *ngIf="!evt.isEnrolled && !evt.isFinished && evt.availableSpots <= 3"
+                  class="status-pill warning">{{ evt.availableSpots }} p.</span>
+              </div>
+
+              <h4 class="event-title">{{ evt.title }}</h4>
+
+              <div class="event-meta">
+                <span><i class="fa-regular fa-clock"></i> {{ evt.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA I MIEI TORNEI -->
+    <section *ngIf="currentTab === 'miei-tornei'" class="section-block">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-fire text-neon"></i> I MIEI TORNEI ISCRITTI</h2>
+        <p>Gestisci le tue iscrizioni gratuite, consulta gli orari dei match e preparati alla sfida.</p>
+      </div>
+
+      <div *ngIf="myTournaments.length === 0" class="empty-card">
+        <i class="fa-solid fa-gamepad empty-icon"></i>
+        <h3>Non sei iscritto a nessun torneo</h3>
+        <p>Esplora la griglia tornei e registrati gratis con un click!</p>
+        <button type="button" class="btn btn-action primary" (click)="currentTab = 'tornei'">Sfoglia Tornei</button>
+      </div>
+
+      <div *ngIf="myTournaments.length > 0" class="tournaments-grid">
+        <div *ngFor="let t of myTournaments" class="card-tournament card-enrolled">
+          <div class="card-badge-container">
+            <span class="category-badge" [ngClass]="t.category.toLowerCase()">{{ t.category }}</span>
+            <span class="status-badge enrolled"><i class="fa-solid fa-check-double"></i> Confermato</span>
+          </div>
+
+          <div class="card-media">
+            <img [src]="t.image" [alt]="t.title" class="media-img" (error)="handleImageError($event)">
+            <div class="media-gradient"></div>
+            <h3 class="tournament-name">{{ t.title }}</h3>
+          </div>
+
+          <div class="card-body">
+            <p class="tournament-desc">{{ t.description }}</p>
+            <div class="meta-list">
+              <div class="meta-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>Data Incontro: <strong>{{ t.dateTime }}</strong></span>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-award"></i>
+                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button type="button" class="btn btn-action danger" (click)="unenrollUser(t)">
+              <i class="fa-solid fa-user-minus"></i> DISISCRIVITI
+            </button>
+            <button type="button" class="btn btn-action secondary" (click)="openDetailsModal(t)">
+              <i class="fa-solid fa-book"></i> DETTAGLI
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-flex">
+      <div class="footer-brand">
+        <span class="brand-title">ITS <span class="highlight">GAMING</span></span>
+        <p>Piattaforma eSports Ufficiale dell'ITS Academy.</p>
+      </div>
+      <div class="footer-copy">&copy; 2026 ITS Competitions.</div>
+    </div>
+  </footer>
+
+  <!-- MODALE DETTAGLI -->
+  <div *ngIf="activeModal === 'details' && selectedTournament" class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-window" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close-btn" (click)="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+
+      <div class="modal-hero">
+        <img [src]="selectedTournament.image" [alt]="selectedTournament.title" class="modal-cover-img"
+          (error)="handleImageError($event)">
+        <div class="modal-hero-overlay"></div>
+        <div class="modal-hero-title">
+          <span class="category-badge" [ngClass]="selectedTournament.category.toLowerCase()">{{
+            selectedTournament.category }}</span>
+          <h2>{{ selectedTournament.title }}</h2>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'overview' }"
+          (click)="modalTab = 'overview'">Panoramica</button>
+        <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rules' }"
+          (click)="modalTab = 'rules'">Regolamento</button>
+        <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rewards' }"
+          (click)="modalTab = 'rewards'">Premi</button>
+        <button type="button" *ngIf="selectedTournament.isFinished" class="modal-tab-btn"
+          [ngClass]="{ active: modalTab === 'ranking' }" (click)="modalTab = 'ranking'">Classifica</button>
+      </div>
+
+      <div class="modal-content-body">
+        <div *ngIf="modalTab === 'overview'" class="tab-pane">
+          <p class="modal-description">{{ selectedTournament.description }}</p>
+          <div class="details-grid">
+            <div class="detail-card">
+              <i class="fa-regular fa-clock"></i>
+              <div>
+                <span class="detail-label">Data e Ora</span>
+                <strong class="detail-val">{{ selectedTournament.dateTime }}</strong>
+              </div>
+            </div>
+            <div class="detail-card">
+              <i class="fa-solid fa-ticket"></i>
+              <div>
+                <span class="detail-label">Costo Iscrizione</span>
+                <strong class="detail-val text-neon">Gratuito (0 €)</strong>
+              </div>
+            </div>
+            <div class="detail-card">
+              <i class="fa-solid fa-users"></i>
+              <div>
+                <span class="detail-label">Posti Totali</span>
+                <strong class="detail-val">{{ selectedTournament.maxSpots }} Partecipanti</strong>
+              </div>
+            </div>
+            <div class="detail-card">
+              <i class="fa-solid fa-award"></i>
+              <div>
+                <span class="detail-label">Riconoscimento</span>
+                <strong class="detail-val highlight-gold">{{ selectedTournament.reward }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="modalTab === 'rules'" class="tab-pane">
+          <ul class="rules-list">
+            <li><i class="fa-solid fa-circle-check"></i> Evento riservato agli studenti dell'ITS Academy.</li>
+            <li><i class="fa-solid fa-circle-check"></i> Check-in obbligatorio su Discord 15 minuti prima dell'avvio.
+            </li>
+            <li><i class="fa-solid fa-circle-check"></i> Fair-play ed educazione obbligatori.</li>
+          </ul>
+        </div>
+
+        <div *ngIf="modalTab === 'rewards'" class="tab-pane text-center">
+          <div class="prize-box">
+            <i class="fa-solid fa-trophy prize-icon-gold"></i>
+            <h3>{{ selectedTournament.reward }}</h3>
+            <p>Attestato ed onorificenza ufficiale rilasciata dall'ITS.</p>
+          </div>
+        </div>
+
+        <div *ngIf="modalTab === 'ranking'" class="tab-pane">
+          <div class="ranking-table">
+            <div class="rank-row rank-1"><span class="rank-pos">1°</span><span class="rank-name"><i
+                  class="fa-solid fa-crown text-gold"></i> Cyber_Alpha</span><span class="rank-points">Vincitore</span>
+            </div>
+            <div class="rank-row rank-2"><span class="rank-pos">2°</span><span
+                class="rank-name">ProGamer_ITS</span><span class="rank-points">Finalista</span></div>
+            <div class="rank-row rank-3"><span class="rank-pos">3°</span><span class="rank-name">Marco_Rossi
+                (Tu)</span><span class="rank-points">3° Posto</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-window-footer">
+        <ng-container *ngIf="!selectedTournament.isFinished">
+          <button type="button" *ngIf="!selectedTournament.isEnrolled" class="btn btn-action primary"
+            [disabled]="selectedTournament.availableSpots === 0" (click)="enrollUser(selectedTournament)">
+            <i class="fa-solid fa-user-plus"></i> {{ selectedTournament.availableSpots === 0 ? 'POSTI ESAURITI' :
+            'ISCRIVITI GRATIS ORA' }}
+          </button>
+          <button type="button" *ngIf="selectedTournament.isEnrolled" class="btn btn-action danger"
+            (click)="unenrollUser(selectedTournament)">
+            <i class="fa-solid fa-user-minus"></i> CANCELLA ISCRIZIONE
+          </button>
+        </ng-container>
+        <button type="button" class="btn btn-action secondary" (click)="closeModal()">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE PROFILO -->
+  <div *ngIf="showAccountModal" class="modal-backdrop" (click)="showAccountModal = false">
+    <div class="modal-window small" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close-btn" (click)="showAccountModal = false"><i
+          class="fa-solid fa-xmark"></i></button>
+      <div class="modal-window-header">
+        <h3><i class="fa-solid fa-user-gear text-neon"></i> PROFILO</h3>
+      </div>
+      <form (ngSubmit)="saveAccount()" class="modal-content-body">
+        <div class="form-group">
+          <label for="userName">Nome Giocatore / GamerTag</label>
+          <input id="userName" type="text" [(ngModel)]="user.name" name="userName" required class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Avatar</label>
+          <div class="avatar-grid">
+            <img *ngFor="let img of avatarOptions" [src]="img" class="avatar-pick"
+              [ngClass]="{ active: user.avatar === img }" (click)="user.avatar = img"
+              (error)="handleImageError($event)">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-action primary btn-full"><i class="fa-solid fa-floppy-disk"></i>
+          SALVA</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container">
+    <div *ngFor="let toast of toasts" class="toast-card" [ngClass]="toast.type">
+      <i class="fa-solid" [ngClass]="getToastIcon(toast.type)"></i>
+      <span>{{ toast.message }}</span>
+    </div>
+  </div>
+
+</div>
