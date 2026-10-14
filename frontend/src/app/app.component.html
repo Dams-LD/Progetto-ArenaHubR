@@ -1,5 +1,6 @@
 <div id="app-root">
-  <!-- NAVBAR GLASSMORPHISM -->
+
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="container nav-container">
       <div class="logo" (click)="currentTab = 'tornei'">
@@ -8,24 +9,49 @@
           <span class="brand-title">ITS <span class="highlight">GAMING</span></span>
           <span class="brand-sub">ACADEMY ARENA</span>
         </div>
+
       </div>
 
       <div class="nav-links">
+        <!-- Pulsanti di Navigazione Principali -->
         <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'tornei' }"
           (click)="currentTab = 'tornei'">
           <i class="fa-solid fa-trophy"></i> <span>Tornei</span>
         </button>
+
         <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'calendario' }"
           (click)="currentTab = 'calendario'">
           <i class="fa-regular fa-calendar-days"></i> <span>Calendario</span>
         </button>
-        <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'miei-tornei' }"
+
+        <!-- I Miei Tornei (Visibile solo dopo il Login) -->
+        <button *ngIf="isLoggedIn" type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'miei-tornei' }"
           (click)="currentTab = 'miei-tornei'">
           <i class="fa-solid fa-fire"></i> <span>I Miei Tornei</span>
           <span class="count-badge" *ngIf="myTournaments.length > 0">{{ myTournaments.length }}</span>
         </button>
 
-        <div class="account-chip" (click)="showAccountModal = true" title="Gestisci Account">
+        <button *ngIf="isAdmin" type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'utenti' }"
+          (click)="apriUtenti()">
+          <i class="fa-solid fa-users"></i> <span>Utenti</span>
+        </button>
+
+        <!-- SE NON È LOGGATO: Mostra Login e Registrati -->
+        <div class="auth-btns" *ngIf="!isLoggedIn">
+          <button type="button" class="nav-btn btn-login" (click)="showLoginModal = true">
+            <i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>
+          </button>
+
+          <!-- Se usate i tab per la pagina registrati: -->
+          <button type="button" class="btn-register" [ngClass]="{ active: currentTab === 'registrati' }"
+            (click)="currentTab = 'registrati'">
+            <i class="fa-solid fa-user-plus"></i> <span>Registrati</span>
+          </button>
+          <!-- Se invece usate il router di Angular, usate: routerLink="/registrati" -->
+        </div>
+
+        <!-- SE È LOGGATO: Mostra la scheda profilo attuale -->
+        <div class="account-chip" *ngIf="isLoggedIn" (click)="showAccountModal = true" title="Gestisci Account">
           <img [src]="user.avatar" class="avatar-img" alt="Avatar" (error)="handleImageError($event)">
           <div class="user-info">
             <span class="user-name">{{ user.name }}</span>
@@ -33,19 +59,50 @@
           </div>
           <i class="fa-solid fa-chevron-down nav-arrow"></i>
         </div>
+
       </div>
     </div>
   </nav>
 
+
+  <!-- POP-UP / MODAL DI LOGIN -->
+  <div class="modal-backdrop" *ngIf="showLoginModal" (click)="showLoginModal = false">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-right-to-bracket"></i> Accedi</h3>
+        <button class="close-btn" (click)="showLoginModal = false">&times;</button>
+      </div>
+
+      <form (ngSubmit)="onLoginSubmit()">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" [(ngModel)]="loginData.email" name="email" required
+            placeholder="inserisci la tua email">
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" [(ngModel)]="loginData.password" name="password" required
+            placeholder="••••••••">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="showLoginModal = false">Annulla</button>
+          <button type="submit" class="btn-submit">Accedi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <main class="container main-content">
 
     <!-- HERO BANNER -->
-    <header class="hero-banner" *ngIf="currentTab === 'tornei'">
+    <header class="hero-banner" *ngIf="currentTab === 'tornei'" style="background-image: url('arena.jpg');">
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <span class="hero-tag"><i class="fa-solid fa-bolt"></i> ITS ACADEMY COMPETITIONS</span>
         <h1 class="hero-title">DOMINA L'ARENA <span class="gradient-text">ESPORTS</span></h1>
-        <p class="hero-desc">Partecipa ai 9 tornei gratuiti dell'ITS, scala le classifiche ed ottieni premi e trofei
+        <p class="hero-desc">Partecipa ai 9 tornei dell'ITS, scala le classifiche ed ottieni premi e trofei
           ufficiali.</p>
         <div class="hero-stats">
           <div class="stat-item">
@@ -60,7 +117,7 @@
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-num">100%</span>
-            <span class="stat-label">Gratuito per Studenti</span>
+            <span class="stat-label">Divertimento</span>
           </div>
         </div>
       </div>
@@ -83,9 +140,7 @@
             <i class="fa-solid fa-layer-group select-icon"></i>
             <select [(ngModel)]="selectedCategory">
               <option value="ALL">Tutte le Categorie</option>
-              <option value="FPS">FPS & Battle Royale</option>
-              <option value="SPORT">Sport & Racing</option>
-              <option value="ARCADE">Arcade & Fighting</option>
+              <option *ngFor="let c of categorie" [value]="c">{{ c }}</option>
             </select>
           </div>
 
@@ -126,12 +181,6 @@
                 <span>{{ t.dateTime }}</span>
               </div>
               <div class="meta-item">
-                <i class="fa-solid fa-ticket"></i>
-                <span>Iscrizione: <strong class="text-neon">GRATUITA</strong></span>
-              </div>
-              <div class="meta-item">
-                <i class="fa-solid fa-award"></i>
-                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
               </div>
               <div class="meta-item">
                 <i class="fa-solid fa-users"></i>
@@ -149,7 +198,7 @@
             <ng-container *ngIf="!t.isFinished">
               <button type="button" *ngIf="!t.isEnrolled" class="btn btn-action primary"
                 [disabled]="t.availableSpots === 0" (click)="enrollUser(t)">
-                <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI GRATIS'
+                <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI ORA'
                 }}
               </button>
               <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" (click)="unenrollUser(t)">
@@ -292,13 +341,18 @@
     <section *ngIf="currentTab === 'miei-tornei'" class="section-block">
       <div class="section-header">
         <h2><i class="fa-solid fa-fire text-neon"></i> I MIEI TORNEI ISCRITTI</h2>
-        <p>Gestisci le tue iscrizioni gratuite, consulta gli orari dei match e preparati alla sfida.</p>
+        <p>Gestisci le tue iscrizioni, consulta gli orari dei match e preparati alla sfida.</p>
+      </div>
+
+      <div class="active-counter-bar" *ngIf="maxTournamentsLimit > 0">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Tornei attivi: <strong>{{ mieiTorneiAttivi }} su {{ maxTournamentsLimit }}</strong></span>
       </div>
 
       <div *ngIf="myTournaments.length === 0" class="empty-card">
         <i class="fa-solid fa-gamepad empty-icon"></i>
         <h3>Non sei iscritto a nessun torneo</h3>
-        <p>Esplora la griglia tornei e registrati gratis con un click!</p>
+        <p>Esplora la griglia tornei e registrati ora con un click!</p>
         <button type="button" class="btn btn-action primary" (click)="currentTab = 'tornei'">Sfoglia Tornei</button>
       </div>
 
@@ -322,10 +376,6 @@
                 <i class="fa-regular fa-calendar-check"></i>
                 <span>Data Incontro: <strong>{{ t.dateTime }}</strong></span>
               </div>
-              <div class="meta-item">
-                <i class="fa-solid fa-award"></i>
-                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
-              </div>
             </div>
           </div>
 
@@ -341,7 +391,50 @@
       </div>
     </section>
 
+    <!-- VISTA UTENTI (solo admin) -->
+    <section *ngIf="currentTab === 'utenti' && isAdmin" class="section-block">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-users text-neon"></i> UTENTI</h2>
+      </div>
+
+      <form (ngSubmit)="salvaLimite()" class="form-group">
+        <label for="limite">Limite tornei attivi per utente (3-999)</label>
+        <input id="limite" type="number" min="3" max="999" step="1" [(ngModel)]="nuovoLimite" name="limite" class="form-input">
+        <button type="submit" class="btn btn-action primary">SALVA</button>
+        <small>La modifica non è retroattiva: nessuno viene disiscritto.</small>
+      </form>
+
+      <div style="overflow-x: auto">
+        <table class="tabella-utenti">
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Tornei attivi</th><th>Tornei totali</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of utenti" [style.color]="u.sopraLimite ? '#ff5c5c' : null">
+              <td>{{ u.username }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.torneiAttivi }} / {{ maxTournamentsLimit }}</td>
+              <td>{{ u.torneiTotali }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
+
+  <!-- POP-UP ISCRIZIONE RIFIUTATA -->
+  <div class="modal-backdrop" *ngIf="messaggioBlocco" (click)="messaggioBlocco = null">
+    <div class="modal-window small" (click)="$event.stopPropagation()">
+      <div class="modal-window-header">
+        <h3><i class="fa-solid fa-ban"></i> Iscrizione non possibile</h3>
+      </div>
+      <div class="modal-content-body">
+        <p>{{ messaggioBlocco }}</p>
+        <button type="button" class="btn btn-action primary btn-full" (click)="messaggioBlocco = null">OK</button>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer class="footer">
@@ -375,10 +468,6 @@
           (click)="modalTab = 'overview'">Panoramica</button>
         <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rules' }"
           (click)="modalTab = 'rules'">Regolamento</button>
-        <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rewards' }"
-          (click)="modalTab = 'rewards'">Premi</button>
-        <button type="button" *ngIf="selectedTournament.isFinished" class="modal-tab-btn"
-          [ngClass]="{ active: modalTab === 'ranking' }" (click)="modalTab = 'ranking'">Classifica</button>
       </div>
 
       <div class="modal-content-body">
@@ -393,57 +482,20 @@
               </div>
             </div>
             <div class="detail-card">
-              <i class="fa-solid fa-ticket"></i>
-              <div>
-                <span class="detail-label">Costo Iscrizione</span>
-                <strong class="detail-val text-neon">Gratuito (0 €)</strong>
-              </div>
-            </div>
-            <div class="detail-card">
               <i class="fa-solid fa-users"></i>
               <div>
                 <span class="detail-label">Posti Totali</span>
                 <strong class="detail-val">{{ selectedTournament.maxSpots }} Partecipanti</strong>
               </div>
             </div>
-            <div class="detail-card">
-              <i class="fa-solid fa-award"></i>
-              <div>
-                <span class="detail-label">Riconoscimento</span>
-                <strong class="detail-val highlight-gold">{{ selectedTournament.reward }}</strong>
-              </div>
-            </div>
           </div>
         </div>
 
         <div *ngIf="modalTab === 'rules'" class="tab-pane">
-          <ul class="rules-list">
-            <li><i class="fa-solid fa-circle-check"></i> Evento riservato agli studenti dell'ITS Academy.</li>
-            <li><i class="fa-solid fa-circle-check"></i> Check-in obbligatorio su Discord 15 minuti prima dell'avvio.
-            </li>
-            <li><i class="fa-solid fa-circle-check"></i> Fair-play ed educazione obbligatori.</li>
-          </ul>
+          <p style="white-space: pre-line">{{ selectedTournament.regole || 'Caricamento regolamento...' }}</p>
         </div>
 
-        <div *ngIf="modalTab === 'rewards'" class="tab-pane text-center">
-          <div class="prize-box">
-            <i class="fa-solid fa-trophy prize-icon-gold"></i>
-            <h3>{{ selectedTournament.reward }}</h3>
-            <p>Attestato ed onorificenza ufficiale rilasciata dall'ITS.</p>
-          </div>
-        </div>
 
-        <div *ngIf="modalTab === 'ranking'" class="tab-pane">
-          <div class="ranking-table">
-            <div class="rank-row rank-1"><span class="rank-pos">1°</span><span class="rank-name"><i
-                  class="fa-solid fa-crown text-gold"></i> Cyber_Alpha</span><span class="rank-points">Vincitore</span>
-            </div>
-            <div class="rank-row rank-2"><span class="rank-pos">2°</span><span
-                class="rank-name">ProGamer_ITS</span><span class="rank-points">Finalista</span></div>
-            <div class="rank-row rank-3"><span class="rank-pos">3°</span><span class="rank-name">Marco_Rossi
-                (Tu)</span><span class="rank-points">3° Posto</span></div>
-          </div>
-        </div>
       </div>
 
       <div class="modal-window-footer">
@@ -451,7 +503,7 @@
           <button type="button" *ngIf="!selectedTournament.isEnrolled" class="btn btn-action primary"
             [disabled]="selectedTournament.availableSpots === 0" (click)="enrollUser(selectedTournament)">
             <i class="fa-solid fa-user-plus"></i> {{ selectedTournament.availableSpots === 0 ? 'POSTI ESAURITI' :
-            'ISCRIVITI GRATIS ORA' }}
+            'ISCRIVITI ORA' }}
           </button>
           <button type="button" *ngIf="selectedTournament.isEnrolled" class="btn btn-action danger"
             (click)="unenrollUser(selectedTournament)">
@@ -487,6 +539,9 @@
         <button type="submit" class="btn btn-action primary btn-full"><i class="fa-solid fa-floppy-disk"></i>
           SALVA</button>
       </form>
+      <button type="button" class="btn btn-action danger btn-full" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> ESCI
+      </button>
     </div>
   </div>
 
