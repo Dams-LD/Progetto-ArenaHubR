@@ -81,7 +81,7 @@
 }
 
 .brand-title .highlight {
-  color: #00f0ff;
+  color: #00ff11;
 }
 
 .brand-sub {
@@ -167,13 +167,15 @@
 
 /* HERO BANNER */
 .hero-banner {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   position: relative;
-  background: #111827;
+  background: #8da9e62f;
   border-radius: 20px;
   padding: 40px;
   margin: 25px 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .hero-overlay {
