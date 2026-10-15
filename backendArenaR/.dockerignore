@@ -1,0 +1,14 @@
+# File che NON devono finire nell'immagine
+
+# Credenziali locali: se fossero copiate, resterebbero dentro il .jar
+src/main/resources/application-local.properties
+.env
+
+# Risultati di compilazione e file dell'editor
+target/
+.git
+.gitignore
+.classpath
+.project
+.settings/
+HELP.md

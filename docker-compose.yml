@@ -1,0 +1,28 @@
+# ArenaHub: avvia backend e frontend con un solo comando
+#
+#   docker compose up --build
+#
+# Il database resta su Supabase (non è dentro Docker).
+# Le credenziali si mettono nel file ".env" (copia di ".env.example").
+
+services:
+  backend:
+    build: ./backendArenaR
+    environment:
+      # Spring Boot legge queste variabili al posto di application-local.properties
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?Manca SPRING_DATASOURCE_URL nel file .env}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?Manca SPRING_DATASOURCE_USERNAME nel file .env}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Manca SPRING_DATASOURCE_PASSWORD nel file .env}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      # Deve restare 4200: è l'unico indirizzo che il CORS del backend accetta
+      # (vedi ORIGINE_FRONTEND in SecurityConfig.java)
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
