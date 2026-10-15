@@ -36,6 +36,11 @@
           <i class="fa-solid fa-users"></i> <span>Utenti</span>
         </button>
 
+        <button *ngIf="isAdmin" type="button" class="nav-btn"
+          [ngClass]="{ active: currentTab === 'nuovo-torneo' }" (click)="currentTab = 'nuovo-torneo'">
+          <i class="fa-solid fa-circle-plus"></i> <span>Nuovo torneo</span>
+        </button>
+
         <!-- SE NON È LOGGATO: Mostra Login e Registrati -->
         <div class="auth-btns" *ngIf="!isLoggedIn">
           <button type="button" class="nav-btn btn-login" (click)="showLoginModal = true">
@@ -122,6 +127,76 @@
       (registrato)="onRegistrato($event)"
       (switchToLogin)="apriLoginDaRegistrazione()">
     </app-registrati>
+
+    <section *ngIf="currentTab === 'nuovo-torneo' && isAdmin" class="section-block create-tournament-section">
+      <div class="create-tournament-card">
+        <div class="create-tournament-header">
+          <div class="create-tournament-icon"><i class="fa-solid fa-trophy"></i></div>
+          <h2>CREA UN NUOVO TORNEO</h2>
+          <p>Compila i dettagli della competizione: il torneo sarà pubblicato con iscrizioni aperte.</p>
+        </div>
+
+        <form (ngSubmit)="creaTorneo()" #formTorneo="ngForm" class="create-tournament-form">
+          <div class="create-tournament-grid">
+            <div class="create-tournament-field">
+              <label for="torneo-nome"><i class="fa-solid fa-heading"></i> Nome torneo</label>
+              <input id="torneo-nome" type="text" [(ngModel)]="nuovoTorneo.nome" name="nome" required
+                minlength="3" maxlength="100" placeholder="es. Campionato Arena">
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-gioco"><i class="fa-solid fa-gamepad"></i> Gioco</label>
+              <input id="torneo-gioco" type="text" [(ngModel)]="nuovoTorneo.gioco" name="gioco" required
+                minlength="2" maxlength="50" placeholder="es. Valorant">
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-categoria"><i class="fa-solid fa-layer-group"></i> Categoria</label>
+              <input id="torneo-categoria" type="text" [(ngModel)]="nuovoTorneo.categoria" name="categoria"
+                list="categorie-torneo" required placeholder="es. FPS">
+              <datalist id="categorie-torneo">
+                <option *ngFor="let categoria of categorie" [value]="categoria"></option>
+              </datalist>
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-data"><i class="fa-regular fa-calendar"></i> Data e ora</label>
+              <input id="torneo-data" type="datetime-local" [(ngModel)]="nuovoTorneo.dataOra" name="dataOra"
+                [min]="dataOraMinima" required>
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-posti"><i class="fa-solid fa-users"></i> Posti disponibili</label>
+              <input id="torneo-posti" type="number" [(ngModel)]="nuovoTorneo.postiMax" name="postiMax"
+                min="2" max="128" step="1" required>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label for="torneo-descrizione"><i class="fa-solid fa-align-left"></i> Descrizione</label>
+              <textarea id="torneo-descrizione" [(ngModel)]="nuovoTorneo.descrizione" name="descrizione"
+                maxlength="300" rows="3" placeholder="Descrivi brevemente la competizione"></textarea>
+              <small>{{ nuovoTorneo.descrizione.length }} / 300 caratteri</small>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label for="torneo-regole"><i class="fa-solid fa-list-check"></i> Regolamento</label>
+              <textarea id="torneo-regole" [(ngModel)]="nuovoTorneo.regole" name="regole"
+                maxlength="2000" rows="5" placeholder="Inserisci le regole del torneo"></textarea>
+              <small>{{ nuovoTorneo.regole.length }} / 2000 caratteri</small>
+            </div>
+          </div>
+
+          <div class="create-tournament-actions">
+            <button type="button" class="btn btn-action secondary"
+              [disabled]="creazioneTorneoInCorso" (click)="currentTab = 'tornei'">Annulla</button>
+            <button type="submit" class="btn btn-action primary" [disabled]="formTorneo.invalid || creazioneTorneoInCorso">
+              <i [class]="creazioneTorneoInCorso ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-floppy-disk'"></i>
+              {{ creazioneTorneoInCorso ? 'CREAZIONE IN CORSO...' : 'CREA TORNEO' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
 
     <!-- HERO BANNER -->
     <header class="hero-banner" *ngIf="currentTab === 'tornei'" style="background-image: url('arena.jpg');">

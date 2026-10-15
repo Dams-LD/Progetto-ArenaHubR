@@ -17,6 +17,17 @@ export interface TorneoApi {
   iscritto: boolean;
 }
 
+/** POST /api/tornei — creazione riservata agli admin. */
+export interface CreaTorneoRequest {
+  nome: string;
+  gioco: string;
+  categoria: string;
+  descrizione: string;
+  regole: string;
+  dataOra: string;
+  postiMax: number;
+}
+
 
 /** POST /api/tornei/{id}/iscrizioni */
 export interface IscrizioneApi {

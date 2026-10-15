@@ -3,19 +3,27 @@ package com.arenaHub.backendArena.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arenaHub.backendArena.dto.CreaTorneoDto;
 import com.arenaHub.backendArena.dto.TorneoDto;
+import com.arenaHub.backendArena.service.AccessoService;
 import com.arenaHub.backendArena.service.TorneoService;
 
+import jakarta.validation.Valid;
+
 /**
- * Gli endpoint pubblici del catalogo.
+ * Endpoint del catalogo: lettura pubblica e creazione riservata agli admin.
  *
  * Sono aperti a tutti, ma se il token c'è lo leggiamo lo stesso: serve a
  * riempire il campo "iscritto" e a far comparire "SEI ISCRITTO" sulle card
@@ -26,9 +34,11 @@ import com.arenaHub.backendArena.service.TorneoService;
 public class TorneoController {
 
     private final TorneoService torneoService;
+    private final AccessoService accessoService;
 
-    public TorneoController(TorneoService torneoService) {
+    public TorneoController(TorneoService torneoService, AccessoService accessoService) {
         this.torneoService = torneoService;
+        this.accessoService = accessoService;
     }
 
     /** GET /api/tornei?stato=&categoria=&gioco= */
@@ -48,6 +58,16 @@ public class TorneoController {
                                @AuthenticationPrincipal Jwt jwt) {
 
         return torneoService.dettaglio(id, utenteDa(jwt));
+    }
+
+    /** POST /api/tornei — solo admin. I nuovi tornei nascono aperti. */
+    @PostMapping("/tornei")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TorneoDto crea(@Valid @RequestBody CreaTorneoDto richiesta,
+                          @AuthenticationPrincipal Jwt jwt) {
+        UUID adminId = utenteDa(jwt);
+        accessoService.richiediAdmin(adminId);
+        return torneoService.crea(richiesta);
     }
 
     /** GET /api/categorie — riempie il menu "Ricerca per categoria". */

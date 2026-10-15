@@ -6,7 +6,7 @@ import { TorneoApiService } from './services/torneo-api.service';
 import { SupabaseService } from './services/supabase.service';
 import { Session } from '@supabase/supabase-js';
 import { toTournament } from './adapters/torneo.adapter';
-import { StatoTorneo, UtenteAdmin } from './models/torneo.model';
+import { CreaTorneoRequest, StatoTorneo, UtenteAdmin } from './models/torneo.model';
 import { RegistratiComponent } from './registration.component';
 
 
@@ -83,13 +83,15 @@ export class AppComponent implements OnInit {
   utenti: UtenteAdmin[] = [];           // pagina admin "Utenti"
   nuovoLimite = 3;                      // campo del form admin
   messaggioBlocco: string | null = null; // pop-up quando l'iscrizione viene rifiutata
+  creazioneTorneoInCorso = false;
+  nuovoTorneo: CreaTorneoRequest = this.formNuovoTorneo();
 
 
   categorie: string[] = [];
   caricamento = false;
 
 
-  currentTab: 'tornei' | 'calendario' | 'miei-tornei' | 'registrati' | 'utenti' = 'tornei';
+  currentTab: 'tornei' | 'calendario' | 'miei-tornei' | 'registrati' | 'utenti' | 'nuovo-torneo' = 'tornei';
 
 
   searchQuery: string = '';
@@ -485,6 +487,55 @@ export class AppComponent implements OnInit {
       },
       error: e => this.mostraErrore(e)
     });
+  }
+
+  creaTorneo(): void {
+    if (!this.isAdmin || this.creazioneTorneoInCorso) return;
+
+    this.creazioneTorneoInCorso = true;
+    this.api.creaTorneo({
+      ...this.nuovoTorneo,
+      nome: this.nuovoTorneo.nome.trim(),
+      gioco: this.nuovoTorneo.gioco.trim(),
+      categoria: this.nuovoTorneo.categoria.trim(),
+      descrizione: this.nuovoTorneo.descrizione.trim(),
+      regole: this.nuovoTorneo.regole.trim(),
+      postiMax: Number(this.nuovoTorneo.postiMax)
+    }).subscribe({
+      next: torneo => {
+        this.creazioneTorneoInCorso = false;
+        this.nuovoTorneo = this.formNuovoTorneo();
+        this.currentTab = 'tornei';
+        this.caricaTornei();
+        this.api.categorie().subscribe({
+          next: categorie => this.categorie = categorie,
+          error: errore => this.mostraErrore(errore)
+        });
+        this.addToast(`Torneo "${torneo.nome}" creato con successo!`, 'success');
+      },
+      error: errore => {
+        this.creazioneTorneoInCorso = false;
+        this.mostraErrore(errore);
+      }
+    });
+  }
+
+  private formNuovoTorneo(): CreaTorneoRequest {
+    return {
+      nome: '',
+      gioco: '',
+      categoria: '',
+      descrizione: '',
+      regole: '',
+      dataOra: '',
+      postiMax: 8
+    };
+  }
+
+  get dataOraMinima(): string {
+    const adesso = new Date();
+    const locale = new Date(adesso.getTime() - adesso.getTimezoneOffset() * 60_000);
+    return locale.toISOString().slice(0, 16);
   }
 
   /** Da usare nel form admin di modifica torneo, prima di salvare lo stato. */

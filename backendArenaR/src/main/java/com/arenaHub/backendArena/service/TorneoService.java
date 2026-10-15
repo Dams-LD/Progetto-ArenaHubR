@@ -1,5 +1,6 @@
 package com.arenaHub.backendArena.service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.arenaHub.backendArena.dto.CreaTorneoDto;
 import com.arenaHub.backendArena.dto.TorneoDto;
 import com.arenaHub.backendArena.entity.Torneo;
 import com.arenaHub.backendArena.exception.RichiestaNonValidaException;
@@ -87,6 +89,50 @@ public class TorneoService {
                 iscrizioneRepository.countByTorneoId(id),
                 t.getStato(),
                 iscritto);
+    }
+
+    /** Crea un torneo aperto dopo aver verificato che la data sia futura. */
+    @Transactional
+    public TorneoDto crea(CreaTorneoDto richiesta) {
+        String nome = richiesta.nome().trim();
+        String gioco = richiesta.gioco().trim();
+        String categoria = richiesta.categoria().trim();
+        if (nome.length() < 3 || nome.length() > 100) {
+            throw new RichiestaNonValidaException("Il nome deve avere fra 3 e 100 caratteri");
+        }
+        if (gioco.length() < 2 || gioco.length() > 50) {
+            throw new RichiestaNonValidaException("Il gioco deve avere fra 2 e 50 caratteri");
+        }
+        if (categoria.isEmpty()) {
+            throw new RichiestaNonValidaException("Seleziona o inserisci una categoria");
+        }
+        if (!richiesta.dataOra().isAfter(LocalDateTime.now())) {
+            throw new RichiestaNonValidaException("La data deve essere futura");
+        }
+
+        Torneo torneo = new Torneo();
+        torneo.setNome(nome);
+        torneo.setGioco(gioco);
+        torneo.setCategoria(categoria);
+        torneo.setDescrizione(richiesta.descrizione() == null ? "" : richiesta.descrizione().trim());
+        torneo.setRegole(richiesta.regole() == null ? "" : richiesta.regole().trim());
+        torneo.setDataOra(richiesta.dataOra());
+        torneo.setPostiMax(richiesta.postiMax());
+        torneo.setStato("aperto");
+
+        Torneo salvato = torneoRepository.saveAndFlush(torneo);
+        return new TorneoDto(
+                salvato.getId(),
+                salvato.getNome(),
+                salvato.getGioco(),
+                salvato.getCategoria(),
+                salvato.getDescrizione(),
+                salvato.getRegole(),
+                salvato.getDataOra(),
+                salvato.getPostiMax(),
+                0,
+                salvato.getStato(),
+                false);
     }
 
     /** Le categorie per il menu di ricerca. */
