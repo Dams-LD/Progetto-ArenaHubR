@@ -364,22 +364,33 @@ export class AppComponent implements OnInit {
   // --- autenticazione ---
 
   async onLoginSubmit(): Promise<void> {
+    if (this.loginInCorso) return;
+
     const { email, password } = this.loginData;
     if (!email || !password) {
       this.addToast('Inserisci email e password', 'danger');
       return;
     }
-    const { error } = await this.supabase.login(email, password);
-    this.zone.run(() => {
-      if (error) {
-        this.addToast('Email o password non corretti', 'danger');
+
+    this.loginInCorso = true;
+    try {
+      const { error } = await this.supabase.login(email, password);
+      this.zone.run(() => {
+        if (error) {
+          this.addToast('Email o password non corretti', 'danger');
+          return;
+        }
+        this.showLoginModal = false;
+        this.loginData = { email: '', password: '' };
+      });
+    } catch {
+      this.zone.run(() => this.addToast('Accesso non riuscito. Controlla la connessione e riprova.', 'danger'));
+    } finally {
+      this.zone.run(() => {
+        this.loginInCorso = false;
         this.cdr.detectChanges();
-        return;
-      }
-      this.showLoginModal = false;
-      this.loginData = { email: '', password: '' };
-    });
-    this.cdr.detectChanges();
+      });
+    }
   }
 
   async logout(): Promise<void> {

@@ -43,7 +43,7 @@
           </button>
 
           <!-- Se usate i tab per la pagina registrati: -->
-          <button type="button" class="nav-btn btn-register" (click)="currentTab = 'registrati'">
+          <button type="button" class="nav-btn btn-registrati" (click)="currentTab = 'registrati'">
             <i class="fa-solid fa-user-plus"></i> <span>Registrati</span>
           </button>
         </div>
@@ -63,29 +63,53 @@
 
 
   <!-- POP-UP / MODAL DI LOGIN -->
-  <div class="modal-backdrop" *ngIf="showLoginModal" (click)="showLoginModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-right-to-bracket"></i> Accedi</h3>
-        <button class="close-btn" (click)="showLoginModal = false">&times;</button>
+  <div class="modal-backdrop login-backdrop" *ngIf="showLoginModal"
+    (click)="!loginInCorso && (showLoginModal = false)">
+    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title"
+      (click)="$event.stopPropagation()">
+      <button type="button" class="login-close" aria-label="Chiudi accesso" [disabled]="loginInCorso"
+        (click)="showLoginModal = false">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="login-header">
+        <div class="login-icon">
+          <i class="fa-solid fa-right-to-bracket"></i>
+        </div>
+        <h2 id="login-title">BENTORNATO IN ARENA</h2>
+        <p>Accedi al tuo account e torna a competere.</p>
       </div>
 
-      <form (ngSubmit)="onLoginSubmit()">
-        <div class="form-group">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" [(ngModel)]="loginData.email" name="email" required
-            placeholder="inserisci la tua email">
+      <form (ngSubmit)="onLoginSubmit()" class="login-form">
+        <div class="login-field">
+          <label for="login-email"><i class="fa-solid fa-envelope"></i> Email</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-at" aria-hidden="true"></i>
+            <input type="email" id="login-email" [(ngModel)]="loginData.email" name="email" required
+              autocomplete="email" placeholder="studente@its.it" [disabled]="loginInCorso">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" [(ngModel)]="loginData.password" name="password" required
-            placeholder="••••••••">
+        <div class="login-field">
+          <label for="login-password"><i class="fa-solid fa-key"></i> Password</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <input type="password" id="login-password" [(ngModel)]="loginData.password" name="password" required
+              autocomplete="current-password" placeholder="Inserisci la password" [disabled]="loginInCorso">
+          </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="showLoginModal = false">Annulla</button>
-          <button type="submit" class="btn-submit">Accedi</button>
+        <button type="submit" class="btn btn-action primary btn-full login-submit" [disabled]="loginInCorso">
+          <i [class]="loginInCorso ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-right-to-bracket'"></i>
+          {{ loginInCorso ? 'ACCESSO IN CORSO...' : 'ACCEDI' }}
+        </button>
+
+        <div class="login-footer">
+          <span>Non hai ancora un account?</span>
+          <button type="button" class="login-register-link" [disabled]="loginInCorso"
+            (click)="showLoginModal = false; currentTab = 'registrati'">
+            Registrati
+          </button>
         </div>
       </form>
     </div>
