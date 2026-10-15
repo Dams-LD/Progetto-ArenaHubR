@@ -28,7 +28,7 @@ Ci si iscrive e si annulla solo quando è `aperto`.
 
 **Immagini dei tornei:** stanno in `assets/` lato Angular e si scelgono dal campo `gioco`. Nel database non c'è niente.
 
-**I form non sono endpoint.** Crea nuovo torneo e Modifica sono pagine Angular: si aprono senza chiamare il backend. La chiamata parte solo quando si preme Salva, ed è il punto 9 o il punto 10.
+**I form sono pagine Angular; la creazione e la modifica vengono salvate dal backend** solo quando l'admin preme Salva, tramite i punti 9 e 10.
 
 ---
 
@@ -431,6 +431,17 @@ Errori:
 ```
 400  {"errore": "Mese non valido"}
 ```
+
+## API AGGIUNTE VERSIONE 1.2 E CON CHANGE REQUEST
+
+# GET /api/impostazioni
+
+# PUT /api/impostazioni
+
+# GET /api/utenti
+
+
+
 
 ---
 

@@ -1,4 +1,3 @@
-import 'zone.js'; // <-- Riga fondamentale aggiunta in cima
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';

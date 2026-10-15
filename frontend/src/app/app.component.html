@@ -1,5 +1,6 @@
 <div id="app-root">
-  <!-- NAVBAR GLASSMORPHISM -->
+
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="container nav-container">
       <div class="logo" (click)="currentTab = 'tornei'">
@@ -8,44 +9,234 @@
           <span class="brand-title">ITS <span class="highlight">GAMING</span></span>
           <span class="brand-sub">ACADEMY ARENA</span>
         </div>
+
       </div>
 
       <div class="nav-links">
+        <!-- Pulsanti di Navigazione Principali -->
         <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'tornei' }"
           (click)="currentTab = 'tornei'">
           <i class="fa-solid fa-trophy"></i> <span>Tornei</span>
         </button>
+
         <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'calendario' }"
           (click)="currentTab = 'calendario'">
           <i class="fa-regular fa-calendar-days"></i> <span>Calendario</span>
         </button>
-        <button type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'miei-tornei' }"
+
+        <!-- I Miei Tornei (Visibile solo dopo il Login) -->
+        <button *ngIf="isLoggedIn" type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'miei-tornei' }"
           (click)="currentTab = 'miei-tornei'">
           <i class="fa-solid fa-fire"></i> <span>I Miei Tornei</span>
           <span class="count-badge" *ngIf="myTournaments.length > 0">{{ myTournaments.length }}</span>
         </button>
 
-        <div class="account-chip" (click)="showAccountModal = true" title="Gestisci Account">
+        <button *ngIf="isAdmin" type="button" class="nav-btn" [ngClass]="{ active: currentTab === 'utenti' }"
+          (click)="apriUtenti()">
+          <i class="fa-solid fa-users"></i> <span>Utenti</span>
+        </button>
+
+        <button *ngIf="isAdmin" type="button" class="nav-btn"
+          [ngClass]="{ active: currentTab === 'nuovo-torneo' }" (click)="nuovoTorneoAdmin()">
+          <i class="fa-solid fa-circle-plus"></i> <span>Nuovo torneo</span>
+        </button>
+
+        <!-- SE NON È LOGGATO: Mostra Login e Registrati -->
+        <div class="auth-btns" *ngIf="!isLoggedIn">
+          <button type="button" class="nav-btn btn-login" (click)="showLoginModal = true">
+            <i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>
+          </button>
+
+          <!-- Se usate i tab per la pagina registrati: -->
+          <button type="button" class="nav-btn btn-registrati" (click)="currentTab = 'registrati'">
+            <i class="fa-solid fa-user-plus"></i> <span>Registrati</span>
+          </button>
+        </div>
+        <!-- SE È LOGGATO: Mostra la scheda profilo attuale -->
+        <div class="account-chip" *ngIf="isLoggedIn" (click)="showAccountModal = true" title="Gestisci Account">
           <img [src]="user.avatar" class="avatar-img" alt="Avatar" (error)="handleImageError($event)">
           <div class="user-info">
             <span class="user-name">{{ user.name }}</span>
-            <span class="user-role">STUDENTE ITS</span>
+            <span class="user-role">{{ isAdmin ? 'ADMIN' : 'STUDENTE ITS' }}</span>
           </div>
           <i class="fa-solid fa-chevron-down nav-arrow"></i>
         </div>
+
       </div>
     </div>
   </nav>
 
+
+  <!-- POP-UP / MODAL DI LOGIN -->
+  <div class="modal-backdrop login-backdrop" *ngIf="showLoginModal"
+    (click)="!loginInCorso && (showLoginModal = false)">
+    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title"
+      (click)="$event.stopPropagation()">
+      <button type="button" class="login-close" aria-label="Chiudi accesso" [disabled]="loginInCorso"
+        (click)="showLoginModal = false">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="login-header">
+        <div class="login-icon">
+          <i class="fa-solid fa-right-to-bracket"></i>
+        </div>
+        <h2 id="login-title">BENTORNATO IN ARENA</h2>
+        <p>Accedi al tuo account e torna a competere.</p>
+      </div>
+
+      <form (ngSubmit)="onLoginSubmit()" class="login-form">
+        <div class="login-field">
+          <label for="login-email"><i class="fa-solid fa-envelope"></i> Email</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-at" aria-hidden="true"></i>
+            <input type="email" id="login-email" [(ngModel)]="loginData.email" name="email" required
+              autocomplete="email" placeholder="studente@its.it" [disabled]="loginInCorso">
+          </div>
+        </div>
+
+        <div class="login-field">
+          <label for="login-password"><i class="fa-solid fa-key"></i> Password</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <input type="password" id="login-password" [(ngModel)]="loginData.password" name="password" required
+              autocomplete="current-password" placeholder="Inserisci la password" [disabled]="loginInCorso">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-action primary btn-full login-submit" [disabled]="loginInCorso">
+          <i [class]="loginInCorso ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-right-to-bracket'"></i>
+          {{ loginInCorso ? 'ACCESSO IN CORSO...' : 'ACCEDI' }}
+        </button>
+
+        <div class="login-footer">
+          <span>Non hai ancora un account?</span>
+          <button type="button" class="login-register-link" [disabled]="loginInCorso"
+            (click)="showLoginModal = false; currentTab = 'registrati'">
+            Registrati
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <main class="container main-content">
 
+    <!-- VISTA REGISTRATI -->
+    <app-registrati *ngIf="currentTab === 'registrati' && !isLoggedIn"
+      (registrato)="onRegistrato($event)"
+      (switchToLogin)="apriLoginDaRegistrazione()">
+    </app-registrati>
+
+    <section *ngIf="currentTab === 'nuovo-torneo' && isAdmin" class="section-block create-tournament-section">
+      <div class="create-tournament-card">
+        <div class="create-tournament-header">
+          <div class="create-tournament-icon">
+            <i [class]="torneoInModificaId === null ? 'fa-solid fa-trophy' : 'fa-solid fa-pen-to-square'"></i>
+          </div>
+          <h2>{{ torneoInModificaId === null ? 'CREA UN NUOVO TORNEO' : 'MODIFICA TORNEO' }}</h2>
+          <p *ngIf="torneoInModificaId === null">
+            Compila i dettagli della competizione: il torneo sarà pubblicato con iscrizioni aperte.
+          </p>
+          <p *ngIf="torneoInModificaId !== null">
+            Aggiorna i dettagli del torneo. Gli iscritti attuali sono {{ iscrittiTorneoInModifica }}.
+          </p>
+        </div>
+
+        <form (ngSubmit)="salvaTorneo()" #formTorneo="ngForm" class="create-tournament-form">
+          <div class="create-tournament-grid">
+            <div class="create-tournament-field">
+              <label for="torneo-nome"><i class="fa-solid fa-heading"></i> Nome torneo</label>
+              <input id="torneo-nome" type="text" [(ngModel)]="nuovoTorneo.nome" name="nome" required
+                minlength="3" maxlength="100" placeholder="es. Campionato Arena">
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-gioco"><i class="fa-solid fa-gamepad"></i> Gioco</label>
+              <select id="torneo-gioco" [(ngModel)]="nuovoTorneo.gioco" name="gioco" required>
+                <option value="" disabled>Seleziona un gioco</option>
+                <option *ngIf="giocoNonInElenco(nuovoTorneo.gioco)"
+                  [value]="nuovoTorneo.gioco">{{ nuovoTorneo.gioco }} (immagine predefinita)</option>
+                <option *ngFor="let gioco of giochiDisponibili" [value]="gioco.nome">{{ gioco.nome }}</option>
+              </select>
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-categoria"><i class="fa-solid fa-layer-group"></i> Categoria</label>
+              <select id="torneo-categoria" [(ngModel)]="nuovoTorneo.categoria" name="categoria" required>
+                <option value="" disabled>Seleziona una categoria</option>
+                <option *ngIf="nuovoTorneo.categoria && !categorieDisponibili.includes(nuovoTorneo.categoria)"
+                  [value]="nuovoTorneo.categoria">{{ nuovoTorneo.categoria }}</option>
+                <option *ngFor="let categoria of categorieDisponibili" [value]="categoria">{{ categoria }}</option>
+              </select>
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-data"><i class="fa-regular fa-calendar"></i> Data e ora</label>
+              <input id="torneo-data" type="datetime-local" [(ngModel)]="nuovoTorneo.dataOra" name="dataOra"
+                [min]="torneoInModificaId === null ? dataOraMinima : null" required>
+            </div>
+
+            <div class="create-tournament-field">
+              <label for="torneo-posti"><i class="fa-solid fa-users"></i> Posti disponibili</label>
+              <input id="torneo-posti" type="number" [(ngModel)]="nuovoTorneo.postiMax" name="postiMax"
+                [min]="iscrittiTorneoInModifica > 2 ? iscrittiTorneoInModifica : 2" max="128" step="1" required>
+            </div>
+
+            <div class="create-tournament-field" *ngIf="torneoInModificaId !== null">
+              <label for="torneo-stato"><i class="fa-solid fa-toggle-on"></i> Stato</label>
+              <select id="torneo-stato" [(ngModel)]="statoTorneoForm" name="stato" required>
+                <option *ngFor="let stato of statiModificaDisponibili()" [value]="stato.valore">
+                  {{ stato.etichetta }}
+                </option>
+              </select>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label><i class="fa-regular fa-image"></i> Anteprima immagine</label>
+              <div class="game-image-preview">
+                <img [src]="immagineGiocoSelezionato(nuovoTorneo.gioco)" [alt]="'Immagine ' + nuovoTorneo.gioco"
+                  (error)="handleImageError($event)">
+                <span>{{ nuovoTorneo.gioco || 'Seleziona un gioco per associare la sua immagine' }}</span>
+              </div>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label for="torneo-descrizione"><i class="fa-solid fa-align-left"></i> Descrizione</label>
+              <textarea id="torneo-descrizione" [(ngModel)]="nuovoTorneo.descrizione" name="descrizione"
+                maxlength="300" rows="3" placeholder="Descrivi brevemente la competizione"></textarea>
+              <small>{{ nuovoTorneo.descrizione.length }} / 300 caratteri</small>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label for="torneo-regole"><i class="fa-solid fa-list-check"></i> Regolamento</label>
+              <textarea id="torneo-regole" [(ngModel)]="nuovoTorneo.regole" name="regole"
+                maxlength="2000" rows="5" placeholder="Inserisci le regole del torneo"></textarea>
+              <small>{{ nuovoTorneo.regole.length }} / 2000 caratteri</small>
+            </div>
+          </div>
+
+          <div class="create-tournament-actions">
+            <button type="button" class="btn btn-action secondary"
+              [disabled]="creazioneTorneoInCorso" (click)="currentTab = 'tornei'">Annulla</button>
+            <button type="submit" class="btn btn-action primary"
+              [disabled]="formTorneo.invalid || creazioneTorneoInCorso || caricamentoModificaTorneo">
+              <i [class]="creazioneTorneoInCorso ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-floppy-disk'"></i>
+              {{ creazioneTorneoInCorso ? 'SALVATAGGIO IN CORSO...' :
+                (torneoInModificaId === null ? 'CREA TORNEO' : 'SALVA MODIFICHE') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
     <!-- HERO BANNER -->
-    <header class="hero-banner" *ngIf="currentTab === 'tornei'">
+    <header class="hero-banner" *ngIf="currentTab === 'tornei'" style="background-image: url('arena.jpg');">
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <span class="hero-tag"><i class="fa-solid fa-bolt"></i> ITS ACADEMY COMPETITIONS</span>
         <h1 class="hero-title">DOMINA L'ARENA <span class="gradient-text">ESPORTS</span></h1>
-        <p class="hero-desc">Partecipa ai 9 tornei gratuiti dell'ITS, scala le classifiche ed ottieni premi e trofei
+        <p class="hero-desc">Partecipa ai tornei dell'ITS, sfida i tuoi compagni e dimostra le tue abilità negli eSport
           ufficiali.</p>
         <div class="hero-stats">
           <div class="stat-item">
@@ -60,7 +251,7 @@
           <div class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-num">100%</span>
-            <span class="stat-label">Gratuito per Studenti</span>
+            <span class="stat-label">Divertimento</span>
           </div>
         </div>
       </div>
@@ -83,9 +274,7 @@
             <i class="fa-solid fa-layer-group select-icon"></i>
             <select [(ngModel)]="selectedCategory">
               <option value="ALL">Tutte le Categorie</option>
-              <option value="FPS">FPS & Battle Royale</option>
-              <option value="SPORT">Sport & Racing</option>
-              <option value="ARCADE">Arcade & Fighting</option>
+              <option *ngFor="let c of categorie" [value]="c">{{ c }}</option>
             </select>
           </div>
 
@@ -126,12 +315,6 @@
                 <span>{{ t.dateTime }}</span>
               </div>
               <div class="meta-item">
-                <i class="fa-solid fa-ticket"></i>
-                <span>Iscrizione: <strong class="text-neon">GRATUITA</strong></span>
-              </div>
-              <div class="meta-item">
-                <i class="fa-solid fa-award"></i>
-                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
               </div>
               <div class="meta-item">
                 <i class="fa-solid fa-users"></i>
@@ -149,10 +332,11 @@
             <ng-container *ngIf="!t.isFinished">
               <button type="button" *ngIf="!t.isEnrolled" class="btn btn-action primary"
                 [disabled]="t.availableSpots === 0" (click)="enrollUser(t)">
-                <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI GRATIS'
+                <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI ORA'
                 }}
               </button>
-              <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" (click)="unenrollUser(t)">
+              <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" disabled
+                title="Per annullare vai in I miei tornei">
                 <i class="fa-solid fa-circle-check"></i> SEI ISCRITTO
               </button>
             </ng-container>
@@ -166,6 +350,17 @@
             <button type="button" class="btn btn-action secondary" (click)="openDetailsModal(t)">
               <i class="fa-solid fa-eye"></i> VEDI
             </button>
+            <ng-container *ngIf="isAdmin">
+              <div class="admin-tournament-actions">
+                <button type="button" class="btn btn-action secondary" [disabled]="caricamentoModificaTorneo"
+                  (click)="modificaTorneo(t)">
+                  <i class="fa-solid fa-pen-to-square"></i> MODIFICA
+                </button>
+                <button type="button" class="btn btn-action danger" (click)="eliminaTorneo(t)">
+                  <i class="fa-solid fa-trash"></i> ELIMINA
+                </button>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -180,14 +375,6 @@
 
     <!-- CALENDARIO -->
     <section *ngIf="currentTab === 'calendario'" class="section-block">
-      <div class="calendar-wrapper">
-        <div class="weekdays-grid">
-          <!-- giorni della settimana -->
-        </div>
-        <div class="calendar-month-grid">
-          <!-- celle del mese -->
-        </div>
-      </div>
       <div class="calendar-header-block">
         <div class="section-header">
           <h2><i class="fa-regular fa-calendar-days text-neon"></i> CALENDARIO COMPETIZIONI</h2>
@@ -243,44 +430,46 @@
         </div>
       </div>
 
-      <div class="weekdays-grid">
-        <div>Lun</div>
-        <div>Mar</div>
-        <div>Mer</div>
-        <div>Gio</div>
-        <div>Ven</div>
-        <div>Sab</div>
-        <div>Dom</div>
-      </div>
+      <div class="calendar-wrapper">
+        <div class="weekdays-grid">
+          <div>Lun</div>
+          <div>Mar</div>
+          <div>Mer</div>
+          <div>Gio</div>
+          <div>Ven</div>
+          <div>Sab</div>
+          <div>Dom</div>
+        </div>
 
-      <div class="calendar-month-grid">
-        <div *ngFor="let day of calendarGridDays" class="cal-day-cell"
-          [ngClass]="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'has-events': day.events.length > 0 }">
-          <div class="day-cell-header">
-            <span class="day-num">{{ day.dayNumber }}</span>
-            <span class="day-badge" *ngIf="day.events.length > 0">{{ day.events.length }} {{ day.events.length === 1 ?
-              'gara' : 'gare' }}</span>
-          </div>
+        <div class="calendar-month-grid">
+          <div *ngFor="let day of calendarGridDays" class="cal-day-cell"
+            [ngClass]="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'has-events': day.events.length > 0 }">
+            <div class="day-cell-header">
+              <span class="day-num">{{ day.dayNumber }}</span>
+              <span class="day-badge" *ngIf="day.events.length > 0">{{ day.events.length }} {{ day.events.length === 1 ?
+                'gara' : 'gare' }}</span>
+            </div>
 
-          <div class="day-events-container">
-            <div *ngFor="let evt of day.events" class="cal-event-card"
-              [ngClass]="{ 'is-enrolled': evt.isEnrolled, 'is-finished': evt.isFinished }"
-              (click)="openDetailsModal(evt)">
-              <div class="event-top">
-                <span class="cat-tag" [ngClass]="evt.category.toLowerCase()">
-                  <i [class]="getCategoryIcon(evt.category)"></i> {{ evt.category }}
-                </span>
-                <span *ngIf="evt.isEnrolled" class="status-pill enrolled"><i class="fa-solid fa-check"></i>
-                  Iscritto</span>
-                <span *ngIf="!evt.isEnrolled && evt.isFinished" class="status-pill finished">Concluso</span>
-                <span *ngIf="!evt.isEnrolled && !evt.isFinished && evt.availableSpots <= 3"
-                  class="status-pill warning">{{ evt.availableSpots }} p.</span>
-              </div>
+            <div class="day-events-container">
+              <div *ngFor="let evt of day.events" class="cal-event-card"
+                [ngClass]="{ 'is-enrolled': evt.isEnrolled, 'is-finished': evt.isFinished }"
+                (click)="openDetailsModal(evt)">
+                <div class="event-top">
+                  <span class="cat-tag" [ngClass]="evt.category.toLowerCase()">
+                    <i [class]="getCategoryIcon(evt.category)"></i> {{ evt.category }}
+                  </span>
+                  <span *ngIf="evt.isEnrolled" class="status-pill enrolled"><i class="fa-solid fa-check"></i>
+                    Iscritto</span>
+                  <span *ngIf="!evt.isEnrolled && evt.isFinished" class="status-pill finished">Concluso</span>
+                  <span *ngIf="!evt.isEnrolled && !evt.isFinished && evt.availableSpots <= 3"
+                    class="status-pill warning">{{ evt.availableSpots }} p.</span>
+                </div>
 
-              <h4 class="event-title">{{ evt.title }}</h4>
+                <h4 class="event-title">{{ evt.title }}</h4>
 
-              <div class="event-meta">
-                <span><i class="fa-regular fa-clock"></i> {{ evt.time }}</span>
+                <div class="event-meta">
+                  <span><i class="fa-regular fa-clock"></i> {{ evt.time }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -292,13 +481,18 @@
     <section *ngIf="currentTab === 'miei-tornei'" class="section-block">
       <div class="section-header">
         <h2><i class="fa-solid fa-fire text-neon"></i> I MIEI TORNEI ISCRITTI</h2>
-        <p>Gestisci le tue iscrizioni gratuite, consulta gli orari dei match e preparati alla sfida.</p>
+        <p>Gestisci le tue iscrizioni, consulta gli orari dei match e preparati alla sfida.</p>
+      </div>
+
+      <div class="active-counter-bar" *ngIf="maxTournamentsLimit > 0">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Tornei attivi: <strong>{{ mieiTorneiAttivi }} su {{ maxTournamentsLimit }}</strong></span>
       </div>
 
       <div *ngIf="myTournaments.length === 0" class="empty-card">
         <i class="fa-solid fa-gamepad empty-icon"></i>
         <h3>Non sei iscritto a nessun torneo</h3>
-        <p>Esplora la griglia tornei e registrati gratis con un click!</p>
+        <p>Esplora la griglia tornei e registrati ora con un click!</p>
         <button type="button" class="btn btn-action primary" (click)="currentTab = 'tornei'">Sfoglia Tornei</button>
       </div>
 
@@ -322,10 +516,6 @@
                 <i class="fa-regular fa-calendar-check"></i>
                 <span>Data Incontro: <strong>{{ t.dateTime }}</strong></span>
               </div>
-              <div class="meta-item">
-                <i class="fa-solid fa-award"></i>
-                <span>Premio: <strong class="highlight-gold">{{ t.reward }}</strong></span>
-              </div>
             </div>
           </div>
 
@@ -341,7 +531,56 @@
       </div>
     </section>
 
+    <!-- VISTA UTENTI (solo admin) -->
+    <section *ngIf="currentTab === 'utenti' && isAdmin" class="section-block">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-users text-neon"></i> UTENTI</h2>
+      </div>
+
+      <form (ngSubmit)="salvaLimite()" class="form-group">
+        <label for="limite">Limite tornei attivi per utente (1-999)</label>
+        <input id="limite" type="number" min="1" max="999" step="1" [(ngModel)]="nuovoLimite" name="limite"
+          class="form-input">
+        <button type="submit" class="btn btn-action primary">SALVA</button>
+        <small>La modifica non è retroattiva: nessuno viene disiscritto.</small>
+      </form>
+
+      <div style="overflow-x: auto">
+        <table class="tabella-utenti">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Tornei attivi</th>
+              <th>Tornei totali</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of utenti" [style.color]="u.sopraLimite ? '#ff5c5c' : null">
+              <td>{{ u.username }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.torneiAttivi }} / {{ maxTournamentsLimit }}</td>
+              <td>{{ u.torneiTotali }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
+
+  <!-- POP-UP ISCRIZIONE RIFIUTATA -->
+  <div class="modal-backdrop" *ngIf="messaggioBlocco" (click)="messaggioBlocco = null">
+    <div class="modal-window small" (click)="$event.stopPropagation()">
+      <div class="modal-window-header">
+        <h3><i class="fa-solid fa-ban"></i> Iscrizione non possibile</h3>
+      </div>
+      <div class="modal-content-body">
+        <p>{{ messaggioBlocco }}</p>
+        <button type="button" class="btn btn-action primary btn-full" (click)="messaggioBlocco = null">OK</button>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer class="footer">
@@ -375,10 +614,6 @@
           (click)="modalTab = 'overview'">Panoramica</button>
         <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rules' }"
           (click)="modalTab = 'rules'">Regolamento</button>
-        <button type="button" class="modal-tab-btn" [ngClass]="{ active: modalTab === 'rewards' }"
-          (click)="modalTab = 'rewards'">Premi</button>
-        <button type="button" *ngIf="selectedTournament.isFinished" class="modal-tab-btn"
-          [ngClass]="{ active: modalTab === 'ranking' }" (click)="modalTab = 'ranking'">Classifica</button>
       </div>
 
       <div class="modal-content-body">
@@ -393,57 +628,20 @@
               </div>
             </div>
             <div class="detail-card">
-              <i class="fa-solid fa-ticket"></i>
-              <div>
-                <span class="detail-label">Costo Iscrizione</span>
-                <strong class="detail-val text-neon">Gratuito (0 €)</strong>
-              </div>
-            </div>
-            <div class="detail-card">
               <i class="fa-solid fa-users"></i>
               <div>
                 <span class="detail-label">Posti Totali</span>
                 <strong class="detail-val">{{ selectedTournament.maxSpots }} Partecipanti</strong>
               </div>
             </div>
-            <div class="detail-card">
-              <i class="fa-solid fa-award"></i>
-              <div>
-                <span class="detail-label">Riconoscimento</span>
-                <strong class="detail-val highlight-gold">{{ selectedTournament.reward }}</strong>
-              </div>
-            </div>
           </div>
         </div>
 
         <div *ngIf="modalTab === 'rules'" class="tab-pane">
-          <ul class="rules-list">
-            <li><i class="fa-solid fa-circle-check"></i> Evento riservato agli studenti dell'ITS Academy.</li>
-            <li><i class="fa-solid fa-circle-check"></i> Check-in obbligatorio su Discord 15 minuti prima dell'avvio.
-            </li>
-            <li><i class="fa-solid fa-circle-check"></i> Fair-play ed educazione obbligatori.</li>
-          </ul>
+          <p style="white-space: pre-line">{{ selectedTournament.regole || 'Caricamento regolamento...' }}</p>
         </div>
 
-        <div *ngIf="modalTab === 'rewards'" class="tab-pane text-center">
-          <div class="prize-box">
-            <i class="fa-solid fa-trophy prize-icon-gold"></i>
-            <h3>{{ selectedTournament.reward }}</h3>
-            <p>Attestato ed onorificenza ufficiale rilasciata dall'ITS.</p>
-          </div>
-        </div>
 
-        <div *ngIf="modalTab === 'ranking'" class="tab-pane">
-          <div class="ranking-table">
-            <div class="rank-row rank-1"><span class="rank-pos">1°</span><span class="rank-name"><i
-                  class="fa-solid fa-crown text-gold"></i> Cyber_Alpha</span><span class="rank-points">Vincitore</span>
-            </div>
-            <div class="rank-row rank-2"><span class="rank-pos">2°</span><span
-                class="rank-name">ProGamer_ITS</span><span class="rank-points">Finalista</span></div>
-            <div class="rank-row rank-3"><span class="rank-pos">3°</span><span class="rank-name">Marco_Rossi
-                (Tu)</span><span class="rank-points">3° Posto</span></div>
-          </div>
-        </div>
       </div>
 
       <div class="modal-window-footer">
@@ -451,11 +649,19 @@
           <button type="button" *ngIf="!selectedTournament.isEnrolled" class="btn btn-action primary"
             [disabled]="selectedTournament.availableSpots === 0" (click)="enrollUser(selectedTournament)">
             <i class="fa-solid fa-user-plus"></i> {{ selectedTournament.availableSpots === 0 ? 'POSTI ESAURITI' :
-            'ISCRIVITI GRATIS ORA' }}
+            'ISCRIVITI ORA' }}
           </button>
           <button type="button" *ngIf="selectedTournament.isEnrolled" class="btn btn-action danger"
             (click)="unenrollUser(selectedTournament)">
             <i class="fa-solid fa-user-minus"></i> CANCELLA ISCRIZIONE
+          </button>
+        </ng-container>
+        <ng-container *ngIf="isAdmin">
+          <button type="button" class="btn btn-action secondary" (click)="modificaTorneo(selectedTournament)">
+            <i class="fa-solid fa-pen-to-square"></i> MODIFICA
+          </button>
+          <button type="button" class="btn btn-action danger" (click)="eliminaTorneo(selectedTournament)">
+            <i class="fa-solid fa-trash"></i> ELIMINA
           </button>
         </ng-container>
         <button type="button" class="btn btn-action secondary" (click)="closeModal()">Chiudi</button>
@@ -487,6 +693,9 @@
         <button type="submit" class="btn btn-action primary btn-full"><i class="fa-solid fa-floppy-disk"></i>
           SALVA</button>
       </form>
+      <button type="button" class="btn btn-action danger btn-full" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> ESCI
+      </button>
     </div>
   </div>
 
