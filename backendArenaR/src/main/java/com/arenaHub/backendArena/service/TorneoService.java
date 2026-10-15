@@ -145,7 +145,13 @@ public class TorneoService {
         String nome = richiesta.nome().trim();
         String gioco = richiesta.gioco().trim();
         String categoria = richiesta.categoria().trim();
-        validaCampiTorneo(nome, gioco, categoria, richiesta.dataOra());
+        validaCampiTorneo(nome, gioco, categoria);
+        boolean dataOraInvariata = richiesta.dataOra().withSecond(0).withNano(0)
+                .equals(torneo.getDataOra().withSecond(0).withNano(0));
+        if (!dataOraInvariata
+                && !richiesta.dataOra().isAfter(LocalDateTime.now())) {
+            throw new RichiestaNonValidaException("La data deve essere futura");
+        }
 
         if (!statoConsentito(torneo.getStato(), richiesta.stato())) {
             throw new RegolaViolataException("Il passaggio di stato richiesto non è consentito");
@@ -162,7 +168,9 @@ public class TorneoService {
         torneo.setCategoria(categoria);
         torneo.setDescrizione(richiesta.descrizione() == null ? "" : richiesta.descrizione().trim());
         torneo.setRegole(richiesta.regole() == null ? "" : richiesta.regole().trim());
-        torneo.setDataOra(richiesta.dataOra());
+        if (!dataOraInvariata) {
+            torneo.setDataOra(richiesta.dataOra());
+        }
         torneo.setPostiMax(richiesta.postiMax());
         torneo.setStato(richiesta.stato());
 
@@ -194,7 +202,7 @@ public class TorneoService {
         torneoRepository.delete(torneo);
     }
 
-    private void validaCampiTorneo(String nome, String gioco, String categoria, LocalDateTime dataOra) {
+    private void validaCampiTorneo(String nome, String gioco, String categoria) {
         if (nome.length() < 3 || nome.length() > 100) {
             throw new RichiestaNonValidaException("Il nome deve avere fra 3 e 100 caratteri");
         }
@@ -203,9 +211,6 @@ public class TorneoService {
         }
         if (categoria.isEmpty()) {
             throw new RichiestaNonValidaException("Seleziona una categoria");
-        }
-        if (!dataOra.isAfter(LocalDateTime.now())) {
-            throw new RichiestaNonValidaException("La data deve essere futura");
         }
     }
 

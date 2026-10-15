@@ -174,7 +174,7 @@
             <div class="create-tournament-field">
               <label for="torneo-data"><i class="fa-regular fa-calendar"></i> Data e ora</label>
               <input id="torneo-data" type="datetime-local" [(ngModel)]="nuovoTorneo.dataOra" name="dataOra"
-                [min]="dataOraMinima" required>
+                [min]="torneoInModificaId === null ? dataOraMinima : null" required>
             </div>
 
             <div class="create-tournament-field">
