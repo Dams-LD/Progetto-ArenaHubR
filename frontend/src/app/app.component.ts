@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -54,6 +54,9 @@ export interface Toast {
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, FormsModule, RegistratiComponent],
+  // Angular 22 usa OnPush di default: con Eager la pagina si aggiorna
+  // anche quando modifichiamo gli oggetti dopo una risposta HTTP
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -64,6 +67,8 @@ export class AppComponent implements OnInit {
   private readonly supabase = inject(SupabaseService);
   /** Le risposte di Supabase arrivano fuori da Angular: zone.run forza l'aggiornamento della vista. */
   private readonly zone = inject(NgZone);
+  /** Ridisegna la pagina subito, anche quando la risposta arriva fuori da Angular. */
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // --- sessione (Supabase Auth) ---
   isLoggedIn = false;
@@ -258,7 +263,7 @@ export class AppComponent implements OnInit {
       const pDate = new Date(year, month - 1, pDay);
       const monthFormatted = String(pDate.getMonth() + 1).padStart(2, '0');
       const dayFormatted = String(pDay).padStart(2, '0');
-      const dateStr = `pDate.getFullYear()-{monthFormatted}-${dayFormatted}`;
+      const dateStr = `${pDate.getFullYear()}-${monthFormatted}-${dayFormatted}`;
       daysArray.push({ dayNumber: pDay, dateStr, isCurrentMonth: false, isToday: false, events: [] });
     }
 
@@ -266,7 +271,7 @@ export class AppComponent implements OnInit {
     for (let day = 1; day <= totalDays; day++) {
       const monthFormatted = String(month + 1).padStart(2, '0');
       const dayFormatted = String(day).padStart(2, '0');
-      const dateStr = `year-{monthFormatted}-${dayFormatted}`;
+      const dateStr = `${year}-${monthFormatted}-${dayFormatted}`;
 
 
       const dayEvents = this.filteredCalendarTournaments.filter(t => t.date === dateStr);
@@ -288,7 +293,7 @@ export class AppComponent implements OnInit {
       const nDate = new Date(year, month + 1, i);
       const monthFormatted = String(nDate.getMonth() + 1).padStart(2, '0');
       const dayFormatted = String(i).padStart(2, '0');
-      const dateStr = `nDate.getFullYear()-{monthFormatted}-${dayFormatted}`;
+      const dateStr = `${nDate.getFullYear()}-${monthFormatted}-${dayFormatted}`;
       daysArray.push({ dayNumber: i, dateStr, isCurrentMonth: false, isToday: false, events: [] });
     }
 
@@ -368,11 +373,13 @@ export class AppComponent implements OnInit {
     this.zone.run(() => {
       if (error) {
         this.addToast('Email o password non corretti', 'danger');
+        this.cdr.detectChanges();
         return;
       }
       this.showLoginModal = false;
       this.loginData = { email: '', password: '' };
     });
+    this.cdr.detectChanges();
   }
 
   async logout(): Promise<void> {
@@ -382,6 +389,7 @@ export class AppComponent implements OnInit {
       this.currentTab = 'tornei';
       this.addToast('Disconnesso', 'info');
     });
+    this.cdr.detectChanges();
   }
 
   // --- registrazione (componente app-registrati) ---
@@ -420,6 +428,7 @@ export class AppComponent implements OnInit {
     if (ricarica && eraLoggato !== this.isLoggedIn) {
       this.caricaTornei();
     }
+    this.cdr.detectChanges();
   }
 
   // --- change request: limite tornei attivi ---
@@ -437,6 +446,7 @@ export class AppComponent implements OnInit {
         this.maxTournamentsLimit = me.limiteTorneiAttivi;
         this.nuovoLimite = me.limiteTorneiAttivi;
         this.user = { ...this.user, name: me.username };
+        this.cdr.detectChanges();
       },
       error: () => this.isAdmin = false
     });

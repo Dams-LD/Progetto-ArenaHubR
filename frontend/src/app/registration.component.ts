@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, NgZone } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Output, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from './services/supabase.service';
@@ -12,12 +12,16 @@ import { SupabaseService } from './services/supabase.service';
   selector: 'app-registrati',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  // Angular 22 usa OnPush di default: con Eager la pagina si aggiorna
+  // anche quando modifichiamo gli oggetti dopo una risposta HTTP
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css']
 })
 export class RegistratiComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** Registrazione riuscita: passa lo username al componente principale. */
   @Output() registrato = new EventEmitter<string>();
@@ -65,7 +69,14 @@ export class RegistratiComponent {
     }
 
     this.invioInCorso = true;
-    const { data, error } = await this.supabase.registra(username, email, password);
+    let data: Awaited<ReturnType<SupabaseService['registra']>>['data'] | null = null;
+    let error: { message: string } | null = null;
+    try {
+      ({ data, error } = await this.supabase.registra(username, email, password));
+    } catch (e) {
+      // errore di rete o di Supabase: senza questo catch il pulsante resterebbe "in corso"
+      error = { message: e instanceof Error ? e.message : String(e) };
+    }
 
     // La risposta di Supabase arriva fuori da Angular: senza zone.run la pagina non si aggiorna
     this.zone.run(() => {
@@ -74,7 +85,7 @@ export class RegistratiComponent {
         this.errore = this.traduciErrore(error.message);
         return;
       }
-      if (!data.session) {
+      if (!data?.session) {
         // succede solo se in Supabase la conferma email è attiva
         this.errore = 'Account creato: conferma l\'indirizzo dalla email che hai ricevuto, poi accedi.';
         return;
@@ -82,6 +93,7 @@ export class RegistratiComponent {
       // con la conferma email spenta Supabase ha già fatto il login
       this.registrato.emit(username);
     });
+    this.cdr.detectChanges();
   }
 
   goLogin(): void {

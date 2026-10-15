@@ -20,7 +20,7 @@ export class TorneoApiService {
 
 
   dettaglio(id: number): Observable<TorneoApi> {
-    return this.http.get<TorneoApi>(`this.base/tornei/{id}`);
+    return this.http.get<TorneoApi>(`${this.base}/tornei/${id}`);
   }
 
 
@@ -30,12 +30,12 @@ export class TorneoApiService {
 
 
   iscriviti(id: number): Observable<IscrizioneApi> {
-    return this.http.post<IscrizioneApi>(`this.base/tornei/{id}/iscrizioni`, null);
+    return this.http.post<IscrizioneApi>(`${this.base}/tornei/${id}/iscrizioni`, null);
   }
 
 
   annulla(id: number): Observable<void> {
-    return this.http.delete<void>(`this.base/tornei/{id}/iscrizioni`);
+    return this.http.delete<void>(`${this.base}/tornei/${id}/iscrizioni`);
   }
 
 

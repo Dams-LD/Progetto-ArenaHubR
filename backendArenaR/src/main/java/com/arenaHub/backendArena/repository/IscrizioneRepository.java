@@ -11,6 +11,12 @@ import org.springframework.stereotype.Repository;
 
 import com.arenaHub.backendArena.entity.Iscrizione;
 
+/**
+ * Le query che filtrano per utente o torneo sono scritte a mano con @Query.
+ * L'entity Iscrizione ha i metodi di comodo getUtenteId() e getTorneoId():
+ * con le query ricavate dal nome, Spring Data li scambierebbe per campi
+ * e genererebbe "i.utenteId", che non esiste (errore 500).
+ */
 @Repository
 public interface IscrizioneRepository extends JpaRepository<Iscrizione, Integer> {
 
@@ -23,13 +29,22 @@ public interface IscrizioneRepository extends JpaRepository<Iscrizione, Integer>
     List<Integer> trovaIdTorneiDiUtente(@Param("utenteId") UUID utenteId);
 
     /** Iscritti a un singolo torneo. */
-    long countByTorneoId(Integer torneoId);
+    @Query("select count(i) from Iscrizione i where i.torneo.id = :torneoId")
+    long countByTorneoId(@Param("torneoId") Integer torneoId);
 
     /** Per il controllo "sei già iscritto". */
-    boolean existsByUtenteIdAndTorneoId(UUID utenteId, Integer torneoId);
+    @Query("""
+           select case when count(i) > 0 then true else false end
+           from Iscrizione i
+           where i.utente.id = :utenteId and i.torneo.id = :torneoId
+           """)
+    boolean existsByUtenteIdAndTorneoId(@Param("utenteId") UUID utenteId,
+                                        @Param("torneoId") Integer torneoId);
 
     /** Per l'annullamento. */
-    Optional<Iscrizione> findByUtenteIdAndTorneoId(UUID utenteId, Integer torneoId);
+    @Query("select i from Iscrizione i where i.utente.id = :utenteId and i.torneo.id = :torneoId")
+    Optional<Iscrizione> findByUtenteIdAndTorneoId(@Param("utenteId") UUID utenteId,
+                                                   @Param("torneoId") Integer torneoId);
 
     /** Tornei attivi di un utente: aperti o chiusi, i conclusi non contano. */
     @Query("""

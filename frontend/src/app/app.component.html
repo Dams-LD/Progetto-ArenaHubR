@@ -205,7 +205,8 @@
                 <i class="fa-solid fa-user-plus"></i> {{ t.availableSpots === 0 ? 'POSTI ESAURITI' : 'ISCRIVITI ORA'
                 }}
               </button>
-              <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" (click)="unenrollUser(t)">
+              <button type="button" *ngIf="t.isEnrolled" class="btn btn-action enrolled" disabled
+                title="Per annullare vai in I miei tornei">
                 <i class="fa-solid fa-circle-check"></i> SEI ISCRITTO
               </button>
             </ng-container>
