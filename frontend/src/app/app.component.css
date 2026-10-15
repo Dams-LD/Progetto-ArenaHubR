@@ -800,7 +800,10 @@
   margin: 0;
   line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Mostra massimo 2 righe prima dei "..." */
+  /*
+  -webkit-line-clamp: 2; 
+   Mostra massimo 2 righe prima dei "..." 
+   */
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
