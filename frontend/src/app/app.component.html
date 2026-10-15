@@ -375,14 +375,6 @@
 
     <!-- CALENDARIO -->
     <section *ngIf="currentTab === 'calendario'" class="section-block">
-      <div class="calendar-wrapper">
-        <div class="weekdays-grid">
-          <!-- giorni della settimana -->
-        </div>
-        <div class="calendar-month-grid">
-          <!-- celle del mese -->
-        </div>
-      </div>
       <div class="calendar-header-block">
         <div class="section-header">
           <h2><i class="fa-regular fa-calendar-days text-neon"></i> CALENDARIO COMPETIZIONI</h2>
@@ -438,44 +430,46 @@
         </div>
       </div>
 
-      <div class="weekdays-grid">
-        <div>Lun</div>
-        <div>Mar</div>
-        <div>Mer</div>
-        <div>Gio</div>
-        <div>Ven</div>
-        <div>Sab</div>
-        <div>Dom</div>
-      </div>
+      <div class="calendar-wrapper">
+        <div class="weekdays-grid">
+          <div>Lun</div>
+          <div>Mar</div>
+          <div>Mer</div>
+          <div>Gio</div>
+          <div>Ven</div>
+          <div>Sab</div>
+          <div>Dom</div>
+        </div>
 
-      <div class="calendar-month-grid">
-        <div *ngFor="let day of calendarGridDays" class="cal-day-cell"
-          [ngClass]="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'has-events': day.events.length > 0 }">
-          <div class="day-cell-header">
-            <span class="day-num">{{ day.dayNumber }}</span>
-            <span class="day-badge" *ngIf="day.events.length > 0">{{ day.events.length }} {{ day.events.length === 1 ?
-              'gara' : 'gare' }}</span>
-          </div>
+        <div class="calendar-month-grid">
+          <div *ngFor="let day of calendarGridDays" class="cal-day-cell"
+            [ngClass]="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'has-events': day.events.length > 0 }">
+            <div class="day-cell-header">
+              <span class="day-num">{{ day.dayNumber }}</span>
+              <span class="day-badge" *ngIf="day.events.length > 0">{{ day.events.length }} {{ day.events.length === 1 ?
+                'gara' : 'gare' }}</span>
+            </div>
 
-          <div class="day-events-container">
-            <div *ngFor="let evt of day.events" class="cal-event-card"
-              [ngClass]="{ 'is-enrolled': evt.isEnrolled, 'is-finished': evt.isFinished }"
-              (click)="openDetailsModal(evt)">
-              <div class="event-top">
-                <span class="cat-tag" [ngClass]="evt.category.toLowerCase()">
-                  <i [class]="getCategoryIcon(evt.category)"></i> {{ evt.category }}
-                </span>
-                <span *ngIf="evt.isEnrolled" class="status-pill enrolled"><i class="fa-solid fa-check"></i>
-                  Iscritto</span>
-                <span *ngIf="!evt.isEnrolled && evt.isFinished" class="status-pill finished">Concluso</span>
-                <span *ngIf="!evt.isEnrolled && !evt.isFinished && evt.availableSpots <= 3"
-                  class="status-pill warning">{{ evt.availableSpots }} p.</span>
-              </div>
+            <div class="day-events-container">
+              <div *ngFor="let evt of day.events" class="cal-event-card"
+                [ngClass]="{ 'is-enrolled': evt.isEnrolled, 'is-finished': evt.isFinished }"
+                (click)="openDetailsModal(evt)">
+                <div class="event-top">
+                  <span class="cat-tag" [ngClass]="evt.category.toLowerCase()">
+                    <i [class]="getCategoryIcon(evt.category)"></i> {{ evt.category }}
+                  </span>
+                  <span *ngIf="evt.isEnrolled" class="status-pill enrolled"><i class="fa-solid fa-check"></i>
+                    Iscritto</span>
+                  <span *ngIf="!evt.isEnrolled && evt.isFinished" class="status-pill finished">Concluso</span>
+                  <span *ngIf="!evt.isEnrolled && !evt.isFinished && evt.availableSpots <= 3"
+                    class="status-pill warning">{{ evt.availableSpots }} p.</span>
+                </div>
 
-              <h4 class="event-title">{{ evt.title }}</h4>
+                <h4 class="event-title">{{ evt.title }}</h4>
 
-              <div class="event-meta">
-                <span><i class="fa-regular fa-clock"></i> {{ evt.time }}</span>
+                <div class="event-meta">
+                  <span><i class="fa-regular fa-clock"></i> {{ evt.time }}</span>
+                </div>
               </div>
             </div>
           </div>

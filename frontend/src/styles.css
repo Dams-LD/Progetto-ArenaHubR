@@ -18,3 +18,344 @@ app-root {
   width: 100%;
   min-height: 100vh;
 }
+
+@media (max-width: 1024px) {
+  #app-root .nav-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #app-root .nav-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  #app-root .account-chip {
+    margin-left: 0;
+  }
+
+  #app-root .hero-banner {
+    padding: 32px;
+  }
+
+  #app-root .tournaments-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+  }
+}
+
+@media (max-width: 700px) {
+  #app-root .container {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  #app-root .nav-links,
+  #app-root .auth-btns {
+    gap: 8px;
+  }
+
+  #app-root .nav-links {
+    justify-content: center;
+  }
+
+  #app-root .nav-btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  #app-root .account-chip {
+    padding: 5px 9px;
+  }
+
+  #app-root .user-name {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #app-root .hero-banner {
+    padding: 28px 22px;
+    margin: 18px 0;
+    border-radius: 15px;
+  }
+
+  #app-root .hero-title {
+    font-size: clamp(2.2rem, 9vw, 3rem);
+  }
+
+  #app-root .hero-desc {
+    font-size: 0.9rem;
+  }
+
+  #app-root .hero-stats {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  #app-root .filter-bar,
+  #app-root .filter-controls {
+    width: 100%;
+  }
+
+  #app-root .search-field {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+
+  #app-root .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #app-root .select-wrapper select {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 8px;
+    font-size: 0.78rem;
+  }
+
+  #app-root .tournaments-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #app-root .calendar-header-block {
+    align-items: stretch;
+  }
+
+  #app-root .cal-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  #app-root .calendar-toolbar {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  #app-root .month-navigator {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  #app-root .current-month-display {
+    min-width: 0;
+    flex: 1;
+    font-size: 1.5rem;
+  }
+
+  #app-root .cal-filters {
+    flex-wrap: wrap;
+  }
+
+  #app-root .filter-chip {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+
+  #app-root .weekdays-grid,
+  #app-root .calendar-month-grid {
+    width: max-content;
+    grid-template-columns: repeat(7, minmax(112px, 1fr));
+  }
+
+  #app-root .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #app-root .modal-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  #app-root .modal-window {
+    margin: auto 0;
+  }
+
+  #app-root .modal-window-footer {
+    justify-content: stretch;
+  }
+
+  #app-root .modal-window-footer > button {
+    flex: 1 1 140px;
+  }
+
+  #app-root .toast-container {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  #app-root .toast-card {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 600px) {
+  #app-root app-registrati .auth-section {
+    align-items: flex-start;
+    padding: 24px 0;
+  }
+
+  #app-root app-registrati .auth-card {
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  #app-root app-registrati .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  #app-root .container {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  #app-root .navbar {
+    padding: 9px 0;
+  }
+
+  #app-root .logo {
+    gap: 8px;
+  }
+
+  #app-root .logo-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  #app-root .brand-title {
+    font-size: 1.55rem;
+  }
+
+  #app-root .brand-sub {
+    font-size: 0.55rem;
+    letter-spacing: 1.5px;
+  }
+
+  #app-root .nav-links {
+    gap: 5px;
+  }
+
+  #app-root .nav-btn {
+    gap: 5px;
+    padding: 7px 8px;
+    font-size: 0.72rem;
+  }
+
+  #app-root .user-info,
+  #app-root .nav-arrow {
+    display: none;
+  }
+
+  #app-root .hero-banner {
+    padding: 24px 18px;
+  }
+
+  #app-root .hero-tag {
+    font-size: 0.68rem;
+  }
+
+  #app-root .hero-title {
+    font-size: 2.35rem;
+  }
+
+  #app-root .hero-stats {
+    justify-content: space-between;
+  }
+
+  #app-root .stat-label {
+    font-size: 0.65rem;
+  }
+
+  #app-root .stat-num {
+    font-size: 1.25rem;
+  }
+
+  #app-root .filter-controls {
+    grid-template-columns: 1fr;
+  }
+
+  #app-root .card-footer {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  #app-root .admin-tournament-actions {
+    flex-direction: column;
+  }
+
+  #app-root .create-tournament-section {
+    padding: 18px 0;
+  }
+
+  #app-root .create-tournament-card {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  #app-root .create-tournament-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #app-root .create-tournament-actions {
+    flex-direction: column-reverse;
+  }
+
+  #app-root .create-tournament-actions button {
+    width: 100%;
+  }
+
+  #app-root .game-image-preview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #app-root .game-image-preview img {
+    width: 100%;
+    height: 150px;
+  }
+
+  #app-root .login-card {
+    padding: 32px 20px 24px;
+  }
+
+  #app-root .modal-content-body {
+    padding: 16px;
+  }
+
+  #app-root .modal-hero {
+    height: 150px;
+  }
+
+  #app-root .footer-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #app-root .login-header h2 {
+    font-size: 1.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  #app-root app-registrati .auth-card {
+    padding: 24px 16px;
+  }
+
+  #app-root app-registrati .auth-header h2 {
+    font-size: 1.9rem;
+  }
+
+  #app-root app-registrati .auth-footer-text {
+    flex-wrap: wrap;
+  }
+}
