@@ -97,6 +97,12 @@
   gap: 12px;
 }
 
+.auth-btns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .nav-btn {
   background: transparent;
   border: 1px solid transparent;
