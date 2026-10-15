@@ -40,16 +40,7 @@
             name="confirmPassword" required placeholder="ripeti la password">
         </div>
       </div>
-
-      <!-- Checkbox Regolamento -->
-      <div class="form-checkbox">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="registerData.acceptTerms" name="acceptTerms" required>
-          <span>Accetto il <a href="#" (click)="$event.preventDefault()">Regolamento dell'Arena</a> e le norme della
-            community</span>
-        </label>
-      </div>
-
+      
       <!-- Messaggio di errore -->
       <p *ngIf="errore" class="form-error" style="color: #ff5c5c; margin: 0 0 12px;">
         <i class="fa-solid fa-circle-exclamation"></i> {{ errore }}
