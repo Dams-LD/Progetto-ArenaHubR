@@ -11,10 +11,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.arenaHub.backendArena.dto.AggiornaTorneoDto;
 import com.arenaHub.backendArena.dto.CreaTorneoDto;
 import com.arenaHub.backendArena.dto.TorneoDto;
 import com.arenaHub.backendArena.entity.Torneo;
 import com.arenaHub.backendArena.exception.RichiestaNonValidaException;
+import com.arenaHub.backendArena.exception.RegolaViolataException;
 import com.arenaHub.backendArena.exception.RisorsaNonTrovataException;
 import com.arenaHub.backendArena.repository.IscrizioneRepository;
 import com.arenaHub.backendArena.repository.TorneoRepository;
@@ -133,6 +135,84 @@ public class TorneoService {
                 0,
                 salvato.getStato(),
                 false);
+    }
+
+    /** Aggiorna i dati senza permettere regressioni di stato o posti insufficienti. */
+    @Transactional
+    public TorneoDto aggiorna(Integer id, AggiornaTorneoDto richiesta, UUID utenteId) {
+        Torneo torneo = torneoRepository.trovaPerAggiornamento(id)
+                .orElseThrow(() -> new RisorsaNonTrovataException("Torneo non trovato"));
+        String nome = richiesta.nome().trim();
+        String gioco = richiesta.gioco().trim();
+        String categoria = richiesta.categoria().trim();
+        validaCampiTorneo(nome, gioco, categoria, richiesta.dataOra());
+
+        if (!statoConsentito(torneo.getStato(), richiesta.stato())) {
+            throw new RegolaViolataException("Il passaggio di stato richiesto non è consentito");
+        }
+
+        long iscritti = iscrizioneRepository.countByTorneoId(id);
+        if (richiesta.postiMax() < iscritti) {
+            throw new RegolaViolataException(
+                    "Ci sono già " + iscritti + " iscritti: i posti non possono scendere sotto " + iscritti);
+        }
+
+        torneo.setNome(nome);
+        torneo.setGioco(gioco);
+        torneo.setCategoria(categoria);
+        torneo.setDescrizione(richiesta.descrizione() == null ? "" : richiesta.descrizione().trim());
+        torneo.setRegole(richiesta.regole() == null ? "" : richiesta.regole().trim());
+        torneo.setDataOra(richiesta.dataOra());
+        torneo.setPostiMax(richiesta.postiMax());
+        torneo.setStato(richiesta.stato());
+
+        Torneo salvato = torneoRepository.saveAndFlush(torneo);
+        return new TorneoDto(
+                salvato.getId(),
+                salvato.getNome(),
+                salvato.getGioco(),
+                salvato.getCategoria(),
+                salvato.getDescrizione(),
+                salvato.getRegole(),
+                salvato.getDataOra(),
+                salvato.getPostiMax(),
+                iscritti,
+                salvato.getStato(),
+                utenteId != null && iscrizioneRepository.existsByUtenteIdAndTorneoId(utenteId, id));
+    }
+
+    /** Elimina solo tornei senza iscritti, come previsto dal contratto. */
+    @Transactional
+    public void elimina(Integer id) {
+        Torneo torneo = torneoRepository.trovaPerAggiornamento(id)
+                .orElseThrow(() -> new RisorsaNonTrovataException("Torneo non trovato"));
+        long iscritti = iscrizioneRepository.countByTorneoId(id);
+        if (iscritti > 0) {
+            throw new RegolaViolataException(
+                    "Il torneo ha " + iscritti + " iscritti e non può essere eliminato");
+        }
+        torneoRepository.delete(torneo);
+    }
+
+    private void validaCampiTorneo(String nome, String gioco, String categoria, LocalDateTime dataOra) {
+        if (nome.length() < 3 || nome.length() > 100) {
+            throw new RichiestaNonValidaException("Il nome deve avere fra 3 e 100 caratteri");
+        }
+        if (gioco.length() < 2 || gioco.length() > 50) {
+            throw new RichiestaNonValidaException("Il gioco deve avere fra 2 e 50 caratteri");
+        }
+        if (categoria.isEmpty()) {
+            throw new RichiestaNonValidaException("Seleziona una categoria");
+        }
+        if (!dataOra.isAfter(LocalDateTime.now())) {
+            throw new RichiestaNonValidaException("La data deve essere futura");
+        }
+    }
+
+    private boolean statoConsentito(String statoAttuale, String nuovoStato) {
+        return statoAttuale.equals(nuovoStato)
+                || ("aperto".equals(statoAttuale) && "chiuso".equals(nuovoStato))
+                || ("chiuso".equals(statoAttuale) && "concluso".equals(nuovoStato));
     }
 
     /** Le categorie per il menu di ricerca. */

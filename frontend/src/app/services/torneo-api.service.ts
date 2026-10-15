@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CreaTorneoRequest, IscrizioneApi, Limite, MiaIscrizioneApi, TorneoApi, UtenteAdmin, UtenteMe } from '../models/torneo.model';
+import { AggiornaTorneoRequest, CreaTorneoRequest, IscrizioneApi, Limite, MiaIscrizioneApi, TorneoApi, UtenteAdmin, UtenteMe } from '../models/torneo.model';
 
 
 /** Tutte le chiamate HTTP verso i tornei. I componenti non usano HttpClient direttamente. */
@@ -20,6 +20,14 @@ export class TorneoApiService {
 
   creaTorneo(richiesta: CreaTorneoRequest): Observable<TorneoApi> {
     return this.http.post<TorneoApi>(`${this.base}/tornei`, richiesta);
+  }
+
+  aggiornaTorneo(id: number, richiesta: AggiornaTorneoRequest): Observable<TorneoApi> {
+    return this.http.put<TorneoApi>(`${this.base}/tornei/${id}`, richiesta);
+  }
+
+  eliminaTorneo(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/tornei/${id}`);
   }
 
 

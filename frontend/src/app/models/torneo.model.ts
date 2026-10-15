@@ -28,6 +28,11 @@ export interface CreaTorneoRequest {
   postiMax: number;
 }
 
+/** PUT /api/tornei/{id} — aggiornamento admin. */
+export interface AggiornaTorneoRequest extends CreaTorneoRequest {
+  stato: StatoTorneo;
+}
+
 
 /** POST /api/tornei/{id}/iscrizioni */
 export interface IscrizioneApi {

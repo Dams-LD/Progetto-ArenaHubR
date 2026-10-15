@@ -5,8 +5,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TorneoApiService } from './services/torneo-api.service';
 import { SupabaseService } from './services/supabase.service';
 import { Session } from '@supabase/supabase-js';
-import { toTournament } from './adapters/torneo.adapter';
-import { CreaTorneoRequest, StatoTorneo, UtenteAdmin } from './models/torneo.model';
+import { GIOCHI_DISPONIBILI, immaginePerGioco, toTournament } from './adapters/torneo.adapter';
+import { CreaTorneoRequest, StatoTorneo, TorneoApi, UtenteAdmin } from './models/torneo.model';
 import { RegistratiComponent } from './registration.component';
 
 
@@ -84,7 +84,13 @@ export class AppComponent implements OnInit {
   nuovoLimite = 3;                      // campo del form admin
   messaggioBlocco: string | null = null; // pop-up quando l'iscrizione viene rifiutata
   creazioneTorneoInCorso = false;
+  caricamentoModificaTorneo = false;
+  torneoInModificaId: number | null = null;
+  statoOriginaleTorneo: StatoTorneo = 'aperto';
+  statoTorneoForm: StatoTorneo = 'aperto';
+  iscrittiTorneoInModifica = 0;
   nuovoTorneo: CreaTorneoRequest = this.formNuovoTorneo();
+  readonly giochiDisponibili = GIOCHI_DISPONIBILI;
 
 
   categorie: string[] = [];
@@ -169,6 +175,11 @@ export class AppComponent implements OnInit {
 
   get myTournaments(): Tournament[] {
     return this.tournaments.filter(t => t.isEnrolled);
+  }
+
+  get categorieDisponibili(): string[] {
+    return [...new Set([...this.categorie, 'BATTLE ROYALE', 'CORSE', 'FPS', 'PICCHIADURO', 'SPORT'])]
+      .sort((a, b) => a.localeCompare(b));
   }
 
 
@@ -489,11 +500,76 @@ export class AppComponent implements OnInit {
     });
   }
 
-  creaTorneo(): void {
+  nuovoTorneoAdmin(): void {
+    if (!this.isAdmin) return;
+    this.torneoInModificaId = null;
+    this.iscrittiTorneoInModifica = 0;
+    this.statoOriginaleTorneo = 'aperto';
+    this.statoTorneoForm = 'aperto';
+    this.nuovoTorneo = this.formNuovoTorneo();
+    this.currentTab = 'nuovo-torneo';
+  }
+
+  modificaTorneo(torneo: Tournament): void {
+    if (!this.isAdmin || this.caricamentoModificaTorneo) return;
+    this.caricamentoModificaTorneo = true;
+    this.api.dettaglio(torneo.id).subscribe({
+      next: dettaglio => {
+        this.caricamentoModificaTorneo = false;
+        this.torneoInModificaId = dettaglio.id;
+        this.iscrittiTorneoInModifica = dettaglio.iscritti;
+        this.statoOriginaleTorneo = dettaglio.stato;
+        this.statoTorneoForm = dettaglio.stato;
+        this.nuovoTorneo = {
+          nome: dettaglio.nome,
+          gioco: this.giochiDisponibili.find(g => g.nome.toLowerCase() === dettaglio.gioco.toLowerCase())?.nome
+            ?? dettaglio.gioco,
+          categoria: dettaglio.categoria,
+          descrizione: dettaglio.descrizione ?? '',
+          regole: dettaglio.regole ?? '',
+          dataOra: dettaglio.dataOra.slice(0, 16),
+          postiMax: dettaglio.postiMax
+        };
+        this.closeModal();
+        this.currentTab = 'nuovo-torneo';
+      },
+      error: errore => {
+        this.caricamentoModificaTorneo = false;
+        this.mostraErrore(errore);
+      }
+    });
+  }
+
+  immagineGiocoSelezionato(gioco: string): string {
+    return immaginePerGioco(gioco);
+  }
+
+  giocoNonInElenco(gioco: string): boolean {
+    return !!gioco && !this.giochiDisponibili.some(g => g.nome === gioco);
+  }
+
+  statiModificaDisponibili(): Array<{ valore: StatoTorneo; etichetta: string }> {
+    switch (this.statoOriginaleTorneo) {
+      case 'aperto':
+        return [
+          { valore: 'aperto', etichetta: 'Aperto' },
+          { valore: 'chiuso', etichetta: 'Chiuso' }
+        ];
+      case 'chiuso':
+        return [
+          { valore: 'chiuso', etichetta: 'Chiuso' },
+          { valore: 'concluso', etichetta: 'Concluso' }
+        ];
+      case 'concluso':
+        return [{ valore: 'concluso', etichetta: 'Concluso' }];
+    }
+  }
+
+  salvaTorneo(): void {
     if (!this.isAdmin || this.creazioneTorneoInCorso) return;
 
     this.creazioneTorneoInCorso = true;
-    this.api.creaTorneo({
+    const dati: CreaTorneoRequest = {
       ...this.nuovoTorneo,
       nome: this.nuovoTorneo.nome.trim(),
       gioco: this.nuovoTorneo.gioco.trim(),
@@ -501,9 +577,20 @@ export class AppComponent implements OnInit {
       descrizione: this.nuovoTorneo.descrizione.trim(),
       regole: this.nuovoTorneo.regole.trim(),
       postiMax: Number(this.nuovoTorneo.postiMax)
-    }).subscribe({
+    };
+    const idTorneo = this.torneoInModificaId;
+    const eraModifica = idTorneo !== null;
+    const richiesta = idTorneo !== null
+      ? this.api.aggiornaTorneo(idTorneo, { ...dati, stato: this.statoTorneoForm })
+      : this.api.creaTorneo(dati);
+
+    richiesta.subscribe({
       next: torneo => {
         this.creazioneTorneoInCorso = false;
+        this.torneoInModificaId = null;
+        this.iscrittiTorneoInModifica = 0;
+        this.statoOriginaleTorneo = 'aperto';
+        this.statoTorneoForm = 'aperto';
         this.nuovoTorneo = this.formNuovoTorneo();
         this.currentTab = 'tornei';
         this.caricaTornei();
@@ -511,12 +598,33 @@ export class AppComponent implements OnInit {
           next: categorie => this.categorie = categorie,
           error: errore => this.mostraErrore(errore)
         });
-        this.addToast(`Torneo "${torneo.nome}" creato con successo!`, 'success');
+        this.addToast(
+          eraModifica ? `Torneo "${torneo.nome}" aggiornato.` : `Torneo "${torneo.nome}" creato con successo!`,
+          'success'
+        );
       },
       error: errore => {
         this.creazioneTorneoInCorso = false;
         this.mostraErrore(errore);
       }
+    });
+  }
+
+  eliminaTorneo(torneo: Tournament): void {
+    if (!this.isAdmin || !confirm(`Vuoi eliminare il torneo "${torneo.title}"? Questa azione non si può annullare.`)) {
+      return;
+    }
+    this.api.eliminaTorneo(torneo.id).subscribe({
+      next: () => {
+        if (this.selectedTournament?.id === torneo.id) this.closeModal();
+        this.tournaments = this.tournaments.filter(t => t.id !== torneo.id);
+        this.addToast(`Torneo "${torneo.title}" eliminato.`, 'success');
+        this.api.categorie().subscribe({
+          next: categorie => this.categorie = categorie,
+          error: errore => this.mostraErrore(errore)
+        });
+      },
+      error: errore => this.mostraErrore(errore)
     });
   }
 

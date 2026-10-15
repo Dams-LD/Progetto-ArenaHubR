@@ -37,7 +37,7 @@
         </button>
 
         <button *ngIf="isAdmin" type="button" class="nav-btn"
-          [ngClass]="{ active: currentTab === 'nuovo-torneo' }" (click)="currentTab = 'nuovo-torneo'">
+          [ngClass]="{ active: currentTab === 'nuovo-torneo' }" (click)="nuovoTorneoAdmin()">
           <i class="fa-solid fa-circle-plus"></i> <span>Nuovo torneo</span>
         </button>
 
@@ -131,12 +131,19 @@
     <section *ngIf="currentTab === 'nuovo-torneo' && isAdmin" class="section-block create-tournament-section">
       <div class="create-tournament-card">
         <div class="create-tournament-header">
-          <div class="create-tournament-icon"><i class="fa-solid fa-trophy"></i></div>
-          <h2>CREA UN NUOVO TORNEO</h2>
-          <p>Compila i dettagli della competizione: il torneo sarà pubblicato con iscrizioni aperte.</p>
+          <div class="create-tournament-icon">
+            <i [class]="torneoInModificaId === null ? 'fa-solid fa-trophy' : 'fa-solid fa-pen-to-square'"></i>
+          </div>
+          <h2>{{ torneoInModificaId === null ? 'CREA UN NUOVO TORNEO' : 'MODIFICA TORNEO' }}</h2>
+          <p *ngIf="torneoInModificaId === null">
+            Compila i dettagli della competizione: il torneo sarà pubblicato con iscrizioni aperte.
+          </p>
+          <p *ngIf="torneoInModificaId !== null">
+            Aggiorna i dettagli del torneo. Gli iscritti attuali sono {{ iscrittiTorneoInModifica }}.
+          </p>
         </div>
 
-        <form (ngSubmit)="creaTorneo()" #formTorneo="ngForm" class="create-tournament-form">
+        <form (ngSubmit)="salvaTorneo()" #formTorneo="ngForm" class="create-tournament-form">
           <div class="create-tournament-grid">
             <div class="create-tournament-field">
               <label for="torneo-nome"><i class="fa-solid fa-heading"></i> Nome torneo</label>
@@ -146,17 +153,22 @@
 
             <div class="create-tournament-field">
               <label for="torneo-gioco"><i class="fa-solid fa-gamepad"></i> Gioco</label>
-              <input id="torneo-gioco" type="text" [(ngModel)]="nuovoTorneo.gioco" name="gioco" required
-                minlength="2" maxlength="50" placeholder="es. Valorant">
+              <select id="torneo-gioco" [(ngModel)]="nuovoTorneo.gioco" name="gioco" required>
+                <option value="" disabled>Seleziona un gioco</option>
+                <option *ngIf="giocoNonInElenco(nuovoTorneo.gioco)"
+                  [value]="nuovoTorneo.gioco">{{ nuovoTorneo.gioco }} (immagine predefinita)</option>
+                <option *ngFor="let gioco of giochiDisponibili" [value]="gioco.nome">{{ gioco.nome }}</option>
+              </select>
             </div>
 
             <div class="create-tournament-field">
               <label for="torneo-categoria"><i class="fa-solid fa-layer-group"></i> Categoria</label>
-              <input id="torneo-categoria" type="text" [(ngModel)]="nuovoTorneo.categoria" name="categoria"
-                list="categorie-torneo" required placeholder="es. FPS">
-              <datalist id="categorie-torneo">
-                <option *ngFor="let categoria of categorie" [value]="categoria"></option>
-              </datalist>
+              <select id="torneo-categoria" [(ngModel)]="nuovoTorneo.categoria" name="categoria" required>
+                <option value="" disabled>Seleziona una categoria</option>
+                <option *ngIf="nuovoTorneo.categoria && !categorieDisponibili.includes(nuovoTorneo.categoria)"
+                  [value]="nuovoTorneo.categoria">{{ nuovoTorneo.categoria }}</option>
+                <option *ngFor="let categoria of categorieDisponibili" [value]="categoria">{{ categoria }}</option>
+              </select>
             </div>
 
             <div class="create-tournament-field">
@@ -168,7 +180,25 @@
             <div class="create-tournament-field">
               <label for="torneo-posti"><i class="fa-solid fa-users"></i> Posti disponibili</label>
               <input id="torneo-posti" type="number" [(ngModel)]="nuovoTorneo.postiMax" name="postiMax"
-                min="2" max="128" step="1" required>
+                [min]="iscrittiTorneoInModifica > 2 ? iscrittiTorneoInModifica : 2" max="128" step="1" required>
+            </div>
+
+            <div class="create-tournament-field" *ngIf="torneoInModificaId !== null">
+              <label for="torneo-stato"><i class="fa-solid fa-toggle-on"></i> Stato</label>
+              <select id="torneo-stato" [(ngModel)]="statoTorneoForm" name="stato" required>
+                <option *ngFor="let stato of statiModificaDisponibili()" [value]="stato.valore">
+                  {{ stato.etichetta }}
+                </option>
+              </select>
+            </div>
+
+            <div class="create-tournament-field create-tournament-field-wide">
+              <label><i class="fa-regular fa-image"></i> Anteprima immagine</label>
+              <div class="game-image-preview">
+                <img [src]="immagineGiocoSelezionato(nuovoTorneo.gioco)" [alt]="'Immagine ' + nuovoTorneo.gioco"
+                  (error)="handleImageError($event)">
+                <span>{{ nuovoTorneo.gioco || 'Seleziona un gioco per associare la sua immagine' }}</span>
+              </div>
             </div>
 
             <div class="create-tournament-field create-tournament-field-wide">
@@ -189,9 +219,11 @@
           <div class="create-tournament-actions">
             <button type="button" class="btn btn-action secondary"
               [disabled]="creazioneTorneoInCorso" (click)="currentTab = 'tornei'">Annulla</button>
-            <button type="submit" class="btn btn-action primary" [disabled]="formTorneo.invalid || creazioneTorneoInCorso">
+            <button type="submit" class="btn btn-action primary"
+              [disabled]="formTorneo.invalid || creazioneTorneoInCorso || caricamentoModificaTorneo">
               <i [class]="creazioneTorneoInCorso ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-floppy-disk'"></i>
-              {{ creazioneTorneoInCorso ? 'CREAZIONE IN CORSO...' : 'CREA TORNEO' }}
+              {{ creazioneTorneoInCorso ? 'SALVATAGGIO IN CORSO...' :
+                (torneoInModificaId === null ? 'CREA TORNEO' : 'SALVA MODIFICHE') }}
             </button>
           </div>
         </form>
@@ -318,6 +350,17 @@
             <button type="button" class="btn btn-action secondary" (click)="openDetailsModal(t)">
               <i class="fa-solid fa-eye"></i> VEDI
             </button>
+            <ng-container *ngIf="isAdmin">
+              <div class="admin-tournament-actions">
+                <button type="button" class="btn btn-action secondary" [disabled]="caricamentoModificaTorneo"
+                  (click)="modificaTorneo(t)">
+                  <i class="fa-solid fa-pen-to-square"></i> MODIFICA
+                </button>
+                <button type="button" class="btn btn-action danger" (click)="eliminaTorneo(t)">
+                  <i class="fa-solid fa-trash"></i> ELIMINA
+                </button>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -617,6 +660,14 @@
           <button type="button" *ngIf="selectedTournament.isEnrolled" class="btn btn-action danger"
             (click)="unenrollUser(selectedTournament)">
             <i class="fa-solid fa-user-minus"></i> CANCELLA ISCRIZIONE
+          </button>
+        </ng-container>
+        <ng-container *ngIf="isAdmin">
+          <button type="button" class="btn btn-action secondary" (click)="modificaTorneo(selectedTournament)">
+            <i class="fa-solid fa-pen-to-square"></i> MODIFICA
+          </button>
+          <button type="button" class="btn btn-action danger" (click)="eliminaTorneo(selectedTournament)">
+            <i class="fa-solid fa-trash"></i> ELIMINA
           </button>
         </ng-container>
         <button type="button" class="btn btn-action secondary" (click)="closeModal()">Chiudi</button>

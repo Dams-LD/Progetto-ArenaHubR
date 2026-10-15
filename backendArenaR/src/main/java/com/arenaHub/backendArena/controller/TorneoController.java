@@ -8,7 +8,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.arenaHub.backendArena.dto.CreaTorneoDto;
+import com.arenaHub.backendArena.dto.AggiornaTorneoDto;
 import com.arenaHub.backendArena.dto.TorneoDto;
 import com.arenaHub.backendArena.service.AccessoService;
 import com.arenaHub.backendArena.service.TorneoService;
@@ -68,6 +71,24 @@ public class TorneoController {
         UUID adminId = utenteDa(jwt);
         accessoService.richiediAdmin(adminId);
         return torneoService.crea(richiesta);
+    }
+
+    /** PUT /api/tornei/{id} — solo admin. */
+    @PutMapping("/tornei/{id}")
+    public TorneoDto aggiorna(@PathVariable Integer id,
+                              @Valid @RequestBody AggiornaTorneoDto richiesta,
+                              @AuthenticationPrincipal Jwt jwt) {
+        UUID adminId = utenteDa(jwt);
+        accessoService.richiediAdmin(adminId);
+        return torneoService.aggiorna(id, richiesta, adminId);
+    }
+
+    /** DELETE /api/tornei/{id} — solo admin, solo se non ci sono iscritti. */
+    @DeleteMapping("/tornei/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void elimina(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {
+        accessoService.richiediAdmin(utenteDa(jwt));
+        torneoService.elimina(id);
     }
 
     /** GET /api/categorie — riempie il menu "Ricerca per categoria". */

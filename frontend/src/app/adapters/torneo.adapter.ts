@@ -7,6 +7,18 @@ import { TorneoApi } from '../models/torneo.model';
  */
 
 // Ordine importante: 'f1' prima di 'fc', altrimenti "F1" non viene mai riconosciuto.
+export const GIOCHI_DISPONIBILI = [
+  { nome: 'Fortnite', immagine: 'fortnite.jpg' },
+  { nome: 'Warzone', immagine: 'warzone.jpg' },
+  { nome: 'Valorant', immagine: 'valorant.jpg' },
+  { nome: 'PUBG', immagine: 'pubg.jpg' },
+  { nome: 'Rocket League', immagine: 'rocket.jpg' },
+  { nome: 'Mortal Kombat', immagine: 'mortal.jpg' },
+  { nome: 'UFC', immagine: 'ufc.jpg' },
+  { nome: 'F1', immagine: 'f1.jpg' },
+  { nome: 'FC26', immagine: 'fc.jpg' }
+];
+
 const IMMAGINI: ReadonlyArray<[string, string]> = [
   ['fortnite', 'fortnite.jpg'],
   ['warzone', 'warzone.jpg'],
@@ -51,5 +63,4 @@ export function toTournament(t: TorneoApi): Tournament {
     image: immaginePerGioco(t.gioco)
   };
 }
-
 
