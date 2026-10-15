@@ -47,15 +47,13 @@
             (click)="currentTab = 'registrati'">
             <i class="fa-solid fa-user-plus"></i> <span>Registrati</span>
           </button>
-          <!-- Se invece usate il router di Angular, usate: routerLink="/registrati" -->
         </div>
-
         <!-- SE È LOGGATO: Mostra la scheda profilo attuale -->
         <div class="account-chip" *ngIf="isLoggedIn" (click)="showAccountModal = true" title="Gestisci Account">
           <img [src]="user.avatar" class="avatar-img" alt="Avatar" (error)="handleImageError($event)">
           <div class="user-info">
             <span class="user-name">{{ user.name }}</span>
-            <span class="user-role">STUDENTE ITS</span>
+            <span class="user-role">{{ isAdmin ? 'ADMIN' : 'STUDENTE ITS' }}</span>
           </div>
           <i class="fa-solid fa-chevron-down nav-arrow"></i>
         </div>
@@ -95,6 +93,12 @@
   </div>
 
   <main class="container main-content">
+
+    <!-- VISTA REGISTRATI -->
+    <app-registrati *ngIf="currentTab === 'registrati' && !isLoggedIn"
+      (registrato)="onRegistrato($event)"
+      (switchToLogin)="apriLoginDaRegistrazione()">
+    </app-registrati>
 
     <!-- HERO BANNER -->
     <header class="hero-banner" *ngIf="currentTab === 'tornei'" style="background-image: url('arena.jpg');">
@@ -399,7 +403,8 @@
 
       <form (ngSubmit)="salvaLimite()" class="form-group">
         <label for="limite">Limite tornei attivi per utente (1-999)</label>
-        <input id="limite" type="number" min="1" max="999" step="1" [(ngModel)]="nuovoLimite" name="limite" class="form-input">
+        <input id="limite" type="number" min="1" max="999" step="1" [(ngModel)]="nuovoLimite" name="limite"
+          class="form-input">
         <button type="submit" class="btn btn-action primary">SALVA</button>
         <small>La modifica non è retroattiva: nessuno viene disiscritto.</small>
       </form>
@@ -407,7 +412,12 @@
       <div style="overflow-x: auto">
         <table class="tabella-utenti">
           <thead>
-            <tr><th>Username</th><th>Email</th><th>Tornei attivi</th><th>Tornei totali</th></tr>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Tornei attivi</th>
+              <th>Tornei totali</th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let u of utenti" [style.color]="u.sopraLimite ? '#ff5c5c' : null">

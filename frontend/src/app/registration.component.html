@@ -1,0 +1,73 @@
+<!-- VISTA REGISTRATI: la mostra app.component quando currentTab === 'registrati' -->
+<section class="section-block auth-section">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-icon">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h2>UNISCITI ALL'ARENA</h2>
+      <p>Crea il tuo account atleta e inizia a competere nei tornei ITS.</p>
+    </div>
+
+    <form (ngSubmit)="onRegisterSubmit()" class="auth-form">
+
+      <!-- GamerTag: diventa lo username del profilo -->
+      <div class="form-group">
+        <label for="reg-gamertag"><i class="fa-solid fa-gamepad"></i> GamerTag / Nickname</label>
+        <input type="text" id="reg-gamertag" [(ngModel)]="registerData.gamerTag" name="gamerTag" required
+          minlength="3" maxlength="30" placeholder="es. ProGamer_99">
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="reg-email"><i class="fa-solid fa-envelope"></i> Email</label>
+        <input type="email" id="reg-email" [(ngModel)]="registerData.email" name="email" required
+          placeholder="studente@its.it">
+      </div>
+
+      <!-- Password e Conferma Password -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reg-password"><i class="fa-solid fa-key"></i> Password</label>
+          <input type="password" id="reg-password" [(ngModel)]="registerData.password" name="password" required
+            minlength="8" placeholder="almeno 8 caratteri">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-confirm-password"><i class="fa-solid fa-shield-halved"></i> Conferma Password</label>
+          <input type="password" id="reg-confirm-password" [(ngModel)]="registerData.confirmPassword"
+            name="confirmPassword" required placeholder="ripeti la password">
+        </div>
+      </div>
+
+      <!-- Checkbox Regolamento -->
+      <div class="form-checkbox">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="registerData.acceptTerms" name="acceptTerms" required>
+          <span>Accetto il <a href="#" (click)="$event.preventDefault()">Regolamento dell'Arena</a> e le norme della
+            community</span>
+        </label>
+      </div>
+
+      <!-- Messaggio di errore -->
+      <p *ngIf="errore" class="form-error" style="color: #ff5c5c; margin: 0 0 12px;">
+        <i class="fa-solid fa-circle-exclamation"></i> {{ errore }}
+      </p>
+
+      <!-- Bottone Registrati -->
+      <button type="submit" class="btn btn-action primary btn-full btn-lg" [disabled]="invioInCorso">
+        <i class="fa-solid fa-rocket"></i> {{ invioInCorso ? 'REGISTRAZIONE IN CORSO...' : 'REGISTRATI ORA' }}
+      </button>
+
+      <!-- Switch a Login -->
+      <div class="auth-footer-text">
+        <span>Hai già un account?</span>
+        <button type="button" class="btn-link" (click)="goLogin()">
+          Accedi qui
+        </button>
+      </div>
+
+    </form>
+  </div>
+</section>

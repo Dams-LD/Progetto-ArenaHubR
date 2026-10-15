@@ -1,4 +1,5 @@
-import { Component, inject, NgZone, OnInit } from '@angular/core';import { CommonModule } from '@angular/common';
+import { Component, inject, NgZone, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TorneoApiService } from './services/torneo-api.service';
@@ -6,6 +7,8 @@ import { SupabaseService } from './services/supabase.service';
 import { Session } from '@supabase/supabase-js';
 import { toTournament } from './adapters/torneo.adapter';
 import { StatoTorneo, UtenteAdmin } from './models/torneo.model';
+import { RegistratiComponent } from './registration.component';
+
 
 
 /**
@@ -47,20 +50,20 @@ export interface Toast {
   type: 'success' | 'danger' | 'info';
 }
 
-
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RegistratiComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
+
+
 export class AppComponent implements OnInit {
   private readonly api = inject(TorneoApiService);
   private readonly supabase = inject(SupabaseService);
-    /** Le risposte di Supabase arrivano fuori da Angular: zone.run forza l'aggiornamento della vista. */
+  /** Le risposte di Supabase arrivano fuori da Angular: zone.run forza l'aggiornamento della vista. */
   private readonly zone = inject(NgZone);
-
 
   // --- sessione (Supabase Auth) ---
   isLoggedIn = false;
@@ -124,9 +127,9 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Ripristina la sessione salvata da Supabase (ricaricando la pagina resti loggato)
     // e ascolta login/logout/rinnovo del token.
-      this.supabase.client.auth.getSession().then(({ data }) =>
+    this.supabase.client.auth.getSession().then(({ data }) =>
       this.zone.run(() => this.applicaSessione(data.session, false)));
-      this.supabase.onCambioSessione(session =>
+    this.supabase.onCambioSessione(session =>
       this.zone.run(() => this.applicaSessione(session, true)));
 
     this.caricaTornei();
@@ -192,7 +195,7 @@ export class AppComponent implements OnInit {
   get isCurrentMonthToday(): boolean {
     const now = new Date();
     return this.currentCalendarDate.getMonth() === now.getMonth() &&
-           this.currentCalendarDate.getFullYear() === now.getFullYear();
+      this.currentCalendarDate.getFullYear() === now.getFullYear();
   }
 
 
@@ -355,7 +358,7 @@ export class AppComponent implements OnInit {
 
   // --- autenticazione ---
 
-    async onLoginSubmit(): Promise<void> {
+  async onLoginSubmit(): Promise<void> {
     const { email, password } = this.loginData;
     if (!email || !password) {
       this.addToast('Inserisci email e password', 'danger');
@@ -380,6 +383,21 @@ export class AppComponent implements OnInit {
       this.addToast('Disconnesso', 'info');
     });
   }
+
+  // --- registrazione (componente app-registrati) ---
+
+  /** Il componente di registrazione ha creato l'account: Supabase ha già fatto il login. */
+  onRegistrato(username: string): void {
+    this.currentTab = 'tornei';
+    this.addToast(`Benvenuto ${username}, registrazione completata!`, 'success');
+  }
+
+  /** "Hai già un account? Accedi qui" dal form di registrazione. */
+  apriLoginDaRegistrazione(): void {
+    this.currentTab = 'tornei';
+    this.showLoginModal = true;
+  }
+
 
   /**
    * Unico punto che aggiorna lo stato di login.
@@ -434,8 +452,8 @@ export class AppComponent implements OnInit {
 
   salvaLimite(): void {
     const n = Number(this.nuovoLimite);
-      if (!Number.isInteger(n) || n < 1 || n > 999) {
-        this.addToast('Il limite deve essere un numero intero fra 1 e 999', 'danger');
+    if (!Number.isInteger(n) || n < 1 || n > 999) {
+      this.addToast('Il limite deve essere un numero intero fra 1 e 999', 'danger');
       return;
     }
     this.api.aggiornaLimite(n).subscribe({
