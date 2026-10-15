@@ -25,7 +25,6 @@ export interface Tournament {
   date: string;
   time: string;
   dateTime: string;
-  reward?: string;        // NON esiste nel contratto: da togliere dal template
   maxSpots: number;       // <- postiMax
   availableSpots: number; // <- postiMax - iscritti
   stato: StatoTorneo;
@@ -72,8 +71,7 @@ export class AppComponent implements OnInit {
 
   // --- sessione (Supabase Auth) ---
   isLoggedIn = false;
-  /** Resta false finché il backend non espone GET /api/auth/me. */
-  isAdmin = false;
+  /** Impostato da GET /api/auth/me. */  isAdmin = false;
   showLoginModal = false;
   loginData = { email: '', password: '' };
   loginInCorso = false;
@@ -711,7 +709,7 @@ export class AppComponent implements OnInit {
   handleImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
     if (img && !img.src.endsWith('icona.jpg')) {
-      img.src = 'icona.jpg';   // assets/img/placeholder.jpg non esiste nel progetto
+      img.src = 'icona.jpg';   
     }
   }
 

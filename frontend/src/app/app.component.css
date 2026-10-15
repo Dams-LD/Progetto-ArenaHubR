@@ -325,7 +325,7 @@
   cursor: pointer;
 }
 
-/* GRIGLIA TORNEI (9 CARDS) */
+/* GRIGLIA TORNEI  */
 .tournaments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

@@ -102,7 +102,7 @@ public class SecurityConfig {
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
         // false perché il token viaggia in un header, non in un cookie.
-        // Se un giorno si tornasse ai cookie, qui andrebbe true.
+        
         config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

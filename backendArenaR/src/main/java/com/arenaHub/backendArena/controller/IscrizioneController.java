@@ -28,7 +28,7 @@ public class IscrizioneController {
         this.iscrizioneService = iscrizioneService;
     }
 
-    /** POST /api/tornei/{id}/iscrizioni — nessun corpo, l'utente arriva dal token. */
+    /** POST /api/tornei/{id}/iscrizioni: nessun corpo, l'utente arriva dal token. */
     @PostMapping("/tornei/{id}/iscrizioni")
     @ResponseStatus(HttpStatus.CREATED)
     public IscrizioneDto iscrivi(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {

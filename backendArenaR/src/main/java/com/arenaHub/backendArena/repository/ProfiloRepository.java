@@ -30,7 +30,7 @@ public interface ProfiloRepository extends JpaRepository<Profilo, UUID> {
     Optional<Profilo> trovaPerAggiornamento(@Param("id") UUID id);
 
     /**
-     * Lista utenti per l'admin: conteggi dalla vista v_utenti_iscrizioni di Damiano
+     * Lista utenti per l'admin: conteggi dalla vista v_utenti_iscrizioni
      * (solo ruolo UTENTE), email da auth.users. Query nativa perché nessuna
      * delle due è un'entity. Il backend si collega come postgres e può leggerle.
      *

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * Non restituiamo mai l'entity direttamente, per due motivi: qui ci sono
  * campi che nella tabella non esistono (iscritti, iscritto), e se domani
  * il database cambia non vogliamo che cambi anche la forma del JSON
- * promessa a Riccardo.
+ * definita nel contratto.
  *
  * Il campo "regole" compare solo nel dettaglio: nella lista resta null e
  * Jackson lo omette, come dice il contratto.

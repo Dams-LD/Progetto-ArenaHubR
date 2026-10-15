@@ -36,13 +36,13 @@ public class AdminController {
         this.utenteService = utenteService;
     }
 
-    /** GET /api/impostazioni — qualsiasi utente loggato. */
+    /** GET /api/impostazioni: qualsiasi utente loggato. */
     @GetMapping("/impostazioni")
     public LimiteDto leggiLimite() {
         return new LimiteDto(impostazioniService.limiteTorneiAttivi());
     }
 
-    /** PUT /api/impostazioni — solo admin, 3-999. */
+    /** PUT /api/impostazioni: solo admin, 1-999. */
     @PutMapping("/impostazioni")
     public LimiteDto aggiornaLimite(@Valid @RequestBody LimiteDto richiesta,
                                     @AuthenticationPrincipal Jwt jwt) {
@@ -51,7 +51,7 @@ public class AdminController {
         return new LimiteDto(impostazioniService.aggiornaLimite(richiesta.maxTorneiAttivi(), adminId));
     }
 
-    /** GET /api/utenti — solo admin. */
+    /** GET /api/utenti: solo admin. */
     @GetMapping("/utenti")
     public List<UtenteAdminDto> utenti(@AuthenticationPrincipal Jwt jwt) {
         accessoService.richiediAdmin(Jwts.utenteId(jwt));

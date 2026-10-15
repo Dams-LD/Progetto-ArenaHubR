@@ -24,7 +24,7 @@ public class Impostazioni {
     @Column(name = "id")
     private Short id;
 
-    /** Quanti tornei attivi (aperti o chiusi) può avere ogni utente. Fra 3 e 999. */
+    /** Quanti tornei attivi (aperti o chiusi) può avere ogni utente. Fra 1 e 999. */
     @Column(name = "max_tornei_attivi", nullable = false)
     private Integer maxTorneiAttivi;
 

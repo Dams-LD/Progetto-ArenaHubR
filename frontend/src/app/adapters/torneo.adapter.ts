@@ -2,7 +2,7 @@ import type { Tournament } from '../app.component';
 import { TorneoApi } from '../models/torneo.model';
 
 /**
- * Converte il JSON del contratto nel modello che usa il template di Riccardo.
+ * Converte il JSON del contratto nel modello usato dal template.
  * Tutta la traduzione dei nomi sta qui: il template resta com'è.
  */
 

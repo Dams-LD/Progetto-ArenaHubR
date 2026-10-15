@@ -17,7 +17,7 @@ export interface TorneoApi {
   iscritto: boolean;
 }
 
-/** POST /api/tornei — creazione riservata agli admin. */
+/** POST /api/tornei:  creazione riservata agli admin. */
 export interface CreaTorneoRequest {
   nome: string;
   gioco: string;
@@ -28,7 +28,7 @@ export interface CreaTorneoRequest {
   postiMax: number;
 }
 
-/** PUT /api/tornei/{id} — aggiornamento admin. */
+/** PUT /api/tornei/{id}: aggiornamento admin. */
 export interface AggiornaTorneoRequest extends CreaTorneoRequest {
   stato: StatoTorneo;
 }

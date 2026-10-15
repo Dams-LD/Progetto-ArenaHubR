@@ -55,7 +55,7 @@ public class TorneoController {
         return torneoService.cerca(stato, categoria, gioco, utenteDa(jwt));
     }
 
-    /** GET /api/tornei/{id} — il pop-up "Vedi", con il regolamento. */
+    /** GET /api/tornei/{id}: il pop-up "Vedi", con il regolamento. */
     @GetMapping("/tornei/{id}")
     public TorneoDto dettaglio(@PathVariable Integer id,
                                @AuthenticationPrincipal Jwt jwt) {
@@ -63,7 +63,7 @@ public class TorneoController {
         return torneoService.dettaglio(id, utenteDa(jwt));
     }
 
-    /** POST /api/tornei — solo admin. I nuovi tornei nascono aperti. */
+    /** POST /api/tornei: solo admin. I nuovi tornei nascono aperti. */
     @PostMapping("/tornei")
     @ResponseStatus(HttpStatus.CREATED)
     public TorneoDto crea(@Valid @RequestBody CreaTorneoDto richiesta,
@@ -73,7 +73,7 @@ public class TorneoController {
         return torneoService.crea(richiesta);
     }
 
-    /** PUT /api/tornei/{id} — solo admin. */
+    /** PUT /api/tornei/{id}: solo admin. */
     @PutMapping("/tornei/{id}")
     public TorneoDto aggiorna(@PathVariable Integer id,
                               @Valid @RequestBody AggiornaTorneoDto richiesta,
@@ -83,7 +83,7 @@ public class TorneoController {
         return torneoService.aggiorna(id, richiesta, adminId);
     }
 
-    /** DELETE /api/tornei/{id} — solo admin, solo se non ci sono iscritti. */
+    /** DELETE /api/tornei/{id}: solo admin, solo se non ci sono iscritti. */
     @DeleteMapping("/tornei/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void elimina(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {
@@ -91,7 +91,7 @@ public class TorneoController {
         torneoService.elimina(id);
     }
 
-    /** GET /api/categorie — riempie il menu "Ricerca per categoria". */
+    /** GET /api/categorie: riempie il menu "Ricerca per categoria". */
     @GetMapping("/categorie")
     public List<String> categorie() {
         return torneoService.categorie();
