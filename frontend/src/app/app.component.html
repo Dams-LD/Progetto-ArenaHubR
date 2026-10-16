@@ -122,7 +122,7 @@
   <main class="container main-content">
 
     <!-- VISTA REGISTRATI -->
-    <app-registrati *ngIf="currentTab === 'registrati' && !isLoggedIn"
+    <app-registrati *ngIf="currentTab === 'registrati'"
       (registrato)="onRegistrato($event)"
       (switchToLogin)="apriLoginDaRegistrazione()">
     </app-registrati>
