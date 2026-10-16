@@ -2,7 +2,7 @@
 #
 #   docker compose up --build
 #
-# Il database resta su Supabase (non è dentro Docker).
+# Il database resta su Supabase 
 # Le credenziali si mettono nel file ".env" (copia di ".env.example").
 
 services:

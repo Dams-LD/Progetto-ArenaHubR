@@ -522,7 +522,16 @@
             <button type="button" class="btn btn-action danger" (click)="unenrollUser(t)">
               <i class="fa-solid fa-user-minus"></i> DISISCRIVITI
             </button>
-            
+             <button *ngIf="t.stato === 'chiuso'" type="button" class="btn btn-action disabled" disabled
+              title="L'admin ha chiuso le iscrizioni: non puoi più annullare">
+              <i class="fa-solid fa-lock"></i> TORNEO CHIUSO
+            </button>
+            <button *ngIf="t.stato === 'concluso'" type="button" class="btn btn-action disabled" disabled
+              title="Il torneo si è già svolto">
+              <i class="fa-solid fa-flag-checkered"></i> TORNEO CONCLUSO
+            </button>
+
+
             <button type="button" class="btn btn-action secondary" (click)="openDetailsModal(t)">
               <i class="fa-solid fa-book"></i> DETTAGLI
             </button>
