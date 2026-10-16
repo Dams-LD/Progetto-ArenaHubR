@@ -446,6 +446,16 @@ export class AppComponent implements OnInit {
     } else {
       this.isAdmin = false;
     }
+    // Login, registrazione o logout appena avvenuti: si torna sempre al catalogo.
+    // Senza questo, se l'utente era su una pagina che dopo il login non si vede
+    // più (per esempio "Registrati"), resterebbe davanti a una pagina vuota.
+    if (eraLoggato !== this.isLoggedIn) {
+      if (session && this.currentTab === 'registrati') {
+        const nome = session.user.user_metadata?.['username'] ?? 'nuovo utente';
+        this.addToast('Benvenuto ' + nome + ', registrazione completata!', 'success');
+      }
+      this.currentTab = 'tornei';
+    }
     // il rinnovo del token non cambia l'utente: non serve ricaricare
     if (ricarica && eraLoggato !== this.isLoggedIn) {
       this.caricaTornei();
