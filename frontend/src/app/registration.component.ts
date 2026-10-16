@@ -33,7 +33,6 @@ export class RegistratiComponent {
     email: '',
     password: '',
     confirmPassword: '',
-    acceptTerms: false
   };
 
   errore = '';
@@ -43,7 +42,7 @@ export class RegistratiComponent {
     this.errore = '';
     const username = this.registerData.gamerTag.trim();
     const email = this.registerData.email.trim();
-    const { password, confirmPassword, acceptTerms } = this.registerData;
+    const { password, confirmPassword } = this.registerData;
 
     // Stessi vincoli della tabella profiles: se il trigger fallisse,
     // Supabase restituirebbe solo un generico "Database error"
@@ -63,10 +62,10 @@ export class RegistratiComponent {
       this.errore = 'Le due password non coincidono.';
       return;
     }
-    if (!acceptTerms) {
-      this.errore = 'Devi accettare il regolamento per proseguire.';
-      return;
-    }
+    //if (!acceptTerms) {
+    //  this.errore = 'Devi accettare il regolamento per proseguire.';
+    //  return;
+    //}
 
     this.invioInCorso = true;
     let data: Awaited<ReturnType<SupabaseService['registra']>>['data'] | null = null;
